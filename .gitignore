@@ -1,0 +1,47 @@
+# Emacs backup files
+*~
+\#*\#
+.\#*
+
+# Emacs auto-save files
+*.elc
+*.eln
+*.autosave
+*.swp
+*.swo
+
+# Org mode files
+*.org~
+
+# Emacs lock files
+/.emacs.desktop
+/.emacs.desktop.lock
+
+# Tramp
+/tramp
+
+# Bookmarks
+.bookmarks
+.emacs.bmk
+
+# Eshell history
+.eshell/history
+.eshell/lastdir
+
+# Comint and shell history
+.comint-history
+.python-history
+
+# Project-specific
+projectile-bookmarks.eld
+projectile.cache
+
+# General
+*.log
+*.tmp
+*.bak
+*.old
+
+# Operating system junk
+.DS_Store
+Thumbs.db
