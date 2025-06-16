@@ -45,3 +45,11 @@ projectile.cache
 # Operating system junk
 .DS_Store
 Thumbs.db
+
+elpa/
+transient/
+eln-cache/
+straight/
+auto-save-list/
+undo-tree-history/
+snippets/
