@@ -14,6 +14,9 @@
 (package-install-selected-packages 1)
 (package-autoremove)
 
+;; tool bar
+(tool-bar-mode -1)
+
 ;; Stop the bell
 (setq ring-bell-function 'ignore)
 
@@ -38,6 +41,9 @@
 
 ;; which key mode is nice
 (which-key-mode 1)
+
+;; Global auto revert
+(global-auto-revert-mode 1)
 
 ;; c++ stuff
 (add-hook 'c-mode-hook 'lsp)
