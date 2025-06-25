@@ -10,45 +10,159 @@
 ;; Add packages here to autmatically install them
 (setq
  package-selected-packages
- '(magit projectile lsp-mode lsp-treemacs hydra flycheck company which-key yasnippet clang-format))
+ '(fireplace
+   magit
+   projectile
+   treemacs
+   lsp-mode
+   lsp-ui
+   lsp-treemacs
+   hydra
+   flycheck
+   company
+   avy
+   which-key
+   yasnippet
+   clang-format
+   clang-format+
+   tramp
+   xclip
+   ox-clip
+   org
+   cmake-mode
+   dockerfile-mode
+   json-mode
+   flymake-json
+   helm-xref
+   helm-lsp))
 (package-install-selected-packages 1)
 (package-autoremove)
 
-;; tool bar
-(tool-bar-mode -1)
+;; ------ Display --------
+(setq frame-title-format "%b - Chris' emacs") ;; Set frame title of emacs
+(setq-default frame-title-format "%b") ;; Show window name
+(tool-bar-mode -1) ;; tool bar
+(menu-bar-mode -1) ;; No menu bar
+(scroll-bar-mode -1) ;; No scroll bar
+(setq inhibit-startup-screen t) ;; No Startup screen
+;; (set-face-attribute 'default nil :height 95) ;; Set default font sz
 
-;; Stop the bell
-(setq ring-bell-function 'ignore)
+;; ------ Key bindings --------
+(global-set-key (kbd "C-x <up>") 'windmove-up) ;; moving around
+(global-set-key (kbd "C-x <down>") 'windmove-down)
+(global-set-key (kbd "C-x <left>") 'windmove-left)
+(global-set-key (kbd "C-x <right>") 'windmove-right)
+(global-set-key (kbd "C-x C-o") 'ff-find-other-file)
+(global-set-key "\M-g" 'goto-line) ;; goto line
+(global-set-key "\C-c\C-v" 'uncomment-region) ;; comment region
+(global-set-key "\C-x\C-b" 'buffer-menu) ;; I think this buffer menu (not really)
 
-;; No Startup screen
-(setq inhibit-startup-screen t)
+;; ------ Other --------
+(delete-selection-mode 1) ;; Replaces highlighted text
+(setq ring-bell-function 'ignore) ;; Stop the bell
+(global-auto-revert-mode 1) ;; Global auto revert
+(setq auto-revert-remote-files t) ;; Revert remote files as well
+(setq ring-bell-function 'ignore) ;; Stop the bell
+;; (global-display-line-numbers-mode) ;; Set line #'s
+(put 'erase-buffer 'disabled nil) ;; Don't ask warning for clear buffer (cause i dont use it enough)
+(which-key-mode 1) ;; which key mode is nice
+;; (advice-add 'list-buffers :after
+;;   (lambda (&rest _) (other-window 1))) ;; buffer switching nonsense
+(setq-default vc-handled-backends nil) ;; Dont allow git to do anything
 
-;; Window moving
-(keymap-global-set "C-x <up>" 'windmove-up)
-(keymap-global-set "C-x <down>" 'windmove-down)
-(keymap-global-set "C-x <left>" 'windmove-left)
-(keymap-global-set "C-x <right>" 'windmove-right)
+;; ------ projectile config --------
+(use-package projectile
+  :init
+  (setq projectile-enable-caching t)
+  (setq projectile-enable-cmake-presets t)
+  (setq projectile-enable-caching 'persistent)
+  (global-set-key [f8] "\C-x\p\c\c") ;; Projectile compile to f8
+  :config
+  (projectile-mode +1)
+  (define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map))
+;; (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+;; (setq projectile-enable-caching t)
+;; (setq projectile-enable-cmake-presets t)
+;; (setq projectile-enable-caching 'persistent)
+;; (global-set-key [f8] "\C-x\p\c\c") ;; Projectile compile to f8
 
-;; Replaces highlighted text
-(delete-selection-mode 1)
-
-;; Global auto revert
-(global-auto-revert-mode 1)
-
-;; projectile config
-(projectile-mode +1)
-(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
-
-;; which key mode is nice
-(which-key-mode 1)
-
-;; Global auto revert
-(global-auto-revert-mode 1)
-
-;; c++ stuff
-(add-hook 'c-mode-hook 'lsp)
+;; ------ c++ configs --------
+;; (add-hook 'c-mode-hook 'lsp)
+;; (setq lsp-clients-clangd-executable "/usr/bin/clangd")
+;; (setq lsp-clangd-binary-path "/usr/bin/clangd")
 (add-hook 'c++-mode-hook 'lsp)
+
+(setq gc-cons-threshold (* 100 1024 1024)
+      read-process-output-max (* 1024 1024)
+      treemacs-space-between-root-nodes nil
+      company-idle-delay 0.0
+      company-minimum-prefix-length 1
+      lsp-idle-delay 0.05)  ;; clangd is fast
 
 (with-eval-after-load 'lsp-mode
   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
   (yas-global-mode))
+
+(add-to-list 'auto-mode-alist '("\\.ipp\\'" . c++-mode)) ;; add ipp files to cpp mode
+
+;; ------ clang format --------
+(require 'clang-format)
+(add-hook 'c++-mode-hook 'clang-format+-mode)
+(add-hook 'c-mode-hook 'clang-format+-mode)
+(setq-default clang-format-fallback-style "llvm") ;; sets fallback clang-format
+(setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "-j=4" "-background-index" "--header-insertion=iwyu" "--limit-references=0" "--limit-results=0")) ;; set some clang args
+(setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy")) ;; set some clang args
+
+;; sample `helm' configuration use https://github.com/emacs-helm/helm/ for details
+;; (helm-mode)
+;; (require 'helm-xref)
+;; (define-key global-map [remap find-file] #'helm-find-files)
+;; (define-key global-map [remap execute-extended-command] #'helm-M-x)
+;; (define-key global-map [remap switch-to-buffer] #'helm-mini)
+
+;; ------ tramp --------
+(require 'tramp)
+(tramp-cleanup-all-connections)
+
+;; ------ org mode --------
+(add-hook 'org-mode-hook 'org-indent-mode) ;; Make the indentation look nicer
+(setq org-log-done 'time) ;; When a TODO is set to a done state, record a timestamp
+(setq org-export-with-sub-superscripts '{})
+(setq org-export-backends '(ascii beamer html latex md odt))
+(setq org-confirm-babel-evaluate nil)
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((C . t)
+   (python . t)
+   (latex . t)))
+
+;; Autmatically add cpp code block with C-c b c
+(defun my/org-insert-cpp-block ()
+  (interactive)
+  (insert "#+BEGIN_SRC C++ :results output :flags -std=c++23\n")
+  (insert "#include <iostream>\n\n")
+  (insert "int main() {\n")
+  (insert "    return 0;\n")
+  (insert "}\n")
+  (insert "#+END_SRC\n"))
+(define-key org-mode-map (kbd "C-c b c") #'my/org-insert-cpp-block) ;; Bind to C-c b c
+
+(defun save-clang-format-org ()
+  (interactive)
+  (org-edit-src-code)
+  (clang-format-buffer)
+  (save-buffer)
+  (org-edit-src-exit))
+
+;; ------ compilation buffer font size --------
+(defun my-compilation-mode-font-setup ()
+  (face-remap-add-relative 'default :height 85)) ;; Adjust here
+(add-hook 'compilation-mode-hook #'my-compilation-mode-font-setup)
+
+;; ------ GDB ------
+;; (setq gdb-many-windows 't)
+;; (setq gdb-default-window-configuration-file "~/.emacs.d/.default-gdb-layout.config")
+;; (setq gdb-debuginfod-enable-setting 't)
+
+;; ------ JSON ------
+(add-hook 'json-mode-hook 'flymake-json-load)
