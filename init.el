@@ -4,6 +4,8 @@
 ;; ------ Packages --------
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+;; Setting custom package directory
+;; (setq package-user-dir "~/.emacs.d/elpa") ;; as an example
 (package-initialize)
 
 ;; package thingy
@@ -39,8 +41,7 @@
 (package-autoremove)
 
 ;; ------ Display --------
-(setq frame-title-format "%b - Chris' emacs") ;; Set frame title of emacs
-(setq-default frame-title-format "%b") ;; Show window name
+(setq-default frame-title-format "%b - Chris' emacs") ;; Set frame title of emacs
 (tool-bar-mode -1) ;; tool bar
 (menu-bar-mode -1) ;; No menu bar
 (scroll-bar-mode -1) ;; No scroll bar
@@ -92,6 +93,8 @@
 ;; (setq lsp-clangd-binary-path "/usr/bin/clangd")
 (add-hook 'c++-mode-hook 'lsp)
 
+(add-hook 'c++-mode-hook 'display-line-numbers-mode)
+
 (setq gc-cons-threshold (* 100 1024 1024)
       read-process-output-max (* 1024 1024)
       treemacs-space-between-root-nodes nil
@@ -120,11 +123,22 @@
 ;; (define-key global-map [remap execute-extended-command] #'helm-M-x)
 ;; (define-key global-map [remap switch-to-buffer] #'helm-mini)
 
+;; ------ cmake lsp ------
+(add-hook 'cmake-mode-hook 'lsp)
+
+;; ------ python lsp ------
+(add-hook 'python-mode-hook 'lsp)
+
 ;; ------ tramp --------
 (require 'tramp)
 (tramp-cleanup-all-connections)
 
 ;; ------ org mode --------
+(setq org-default-notes-file (concat org-directory "~/org/notes.org"))
+(global-set-key (kbd "C-c c") #'org-capture)
+(setq org-capture-templates
+      '(("l" "Log" entry (file+datetree "~/org/notes.org")
+         "* %? \n %a")))
 (add-hook 'org-mode-hook 'org-indent-mode) ;; Make the indentation look nicer
 (setq org-log-done 'time) ;; When a TODO is set to a done state, record a timestamp
 (setq org-export-with-sub-superscripts '{})
@@ -160,9 +174,9 @@
 (add-hook 'compilation-mode-hook #'my-compilation-mode-font-setup)
 
 ;; ------ GDB ------
-;; (setq gdb-many-windows 't)
-;; (setq gdb-default-window-configuration-file "~/.emacs.d/.default-gdb-layout.config")
-;; (setq gdb-debuginfod-enable-setting 't)
+(setq gdb-many-windows 't)
+(setq gdb-default-window-configuration-file "~/.emacs.d/.default-gdb-layout.config")
+(setq gdb-debuginfod-enable-setting 't)
 
 ;; ------ JSON ------
 (add-hook 'json-mode-hook 'flymake-json-load)
