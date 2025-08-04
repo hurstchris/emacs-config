@@ -65,11 +65,15 @@
 (setq auto-revert-remote-files t) ;; Revert remote files as well
 (setq ring-bell-function 'ignore) ;; Stop the bell
 ;; (global-display-line-numbers-mode) ;; Set line #'s
+(add-hook 'prog-mode-hook 'display-line-numbers-mode) ;; set line #'s only for prog mode
 (put 'erase-buffer 'disabled nil) ;; Don't ask warning for clear buffer (cause i dont use it enough)
 (which-key-mode 1) ;; which key mode is nice
 ;; (advice-add 'list-buffers :after
 ;;   (lambda (&rest _) (other-window 1))) ;; buffer switching nonsense
 (setq-default vc-handled-backends nil) ;; Dont allow git to do anything
+
+;; ------ magit --------
+(setq magit-diff-refine-hunk 'all)
 
 ;; ------ projectile config --------
 (use-package projectile
@@ -92,8 +96,6 @@
 ;; (setq lsp-clients-clangd-executable "/usr/bin/clangd")
 ;; (setq lsp-clangd-binary-path "/usr/bin/clangd")
 (add-hook 'c++-mode-hook 'lsp)
-
-(add-hook 'c++-mode-hook 'display-line-numbers-mode)
 
 (setq gc-cons-threshold (* 100 1024 1024)
       read-process-output-max (* 1024 1024)
@@ -150,16 +152,19 @@
    (python . t)
    (latex . t)))
 
+;; Org structure templates: C-c C-,
 ;; Autmatically add cpp code block with C-c b c
-(defun my/org-insert-cpp-block ()
-  (interactive)
-  (insert "#+BEGIN_SRC C++ :results output :flags -std=c++23\n")
-  (insert "#include <iostream>\n\n")
-  (insert "int main() {\n")
-  (insert "    return 0;\n")
-  (insert "}\n")
-  (insert "#+END_SRC\n"))
-(define-key org-mode-map (kbd "C-c b c") #'my/org-insert-cpp-block) ;; Bind to C-c b c
+;; (defun my/org-insert-cpp-block ()
+;;   (interactive)
+;;   (insert "#+BEGIN_SRC C++ :results output :flags -std=c++23\n")
+;;   (insert "#include <iostream>\n\n")
+;;   (insert "int main() {\n")
+;;   (insert "    return 0;\n")
+;;   (insert "}\n")
+;;   (insert "#+END_SRC\n"))
+;; (define-key org-mode-map (kbd "C-c b c") #'my/org-insert-cpp-b
+;;	    lock) ;; Bind to C-c b c
+(add-to-list 'org-structure-template-alist '("p" . "src C++"))
 
 (defun save-clang-format-org ()
   (interactive)
@@ -180,3 +185,22 @@
 
 ;; ------ JSON ------
 (add-hook 'json-mode-hook 'flymake-json-load)
+
+;; ------ diff colors -------
+
+(defun update-diff-colors ()
+  "update the colors for diff faces"
+  (set-face-attribute 'diff-refine-added nil
+                      :foreground "white" :background "darkgreen")
+  (set-face-attribute 'diff-refine-removed nil
+                      :foreground "white" :background "darkred")
+  (set-face-attribute 'diff-removed nil
+                      :foreground "#eecccc" :background "#663333")
+  (set-face-attribute 'diff-indicator-removed nil
+                      :foreground "#eecccc" :background "#663333")
+  (set-face-attribute 'diff-added nil
+                      :foreground "#cceecc" :background "#336633")
+  (set-face-attribute 'diff-indicator-added nil
+                      :foreground "#cceecc" :background "#336633"))
+(eval-after-load "diff-mode"
+  '(update-diff-colors))
