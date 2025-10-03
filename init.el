@@ -128,8 +128,7 @@
 (add-hook 'c-mode-hook 'clang-format+-mode)
 (setq-default clang-format-fallback-style "llvm") ;; sets fallback clang-format
 (setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "-j=4" "-background-index" "--header-insertion=iwyu" "--limit-references=0" "--limit-results=0")) ;; set some clang args
-(setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy")) ;; set some clang args
-
+(setq lsp-clients-clangd-args '("--header-insertion=never" "--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy")) ;; set some clang args
 ;; ------ cmake lsp ------
 (add-hook 'cmake-mode-hook 'lsp)
 
@@ -164,22 +163,19 @@
    (gnuplot . t)))
 ;; add additional languages with (language . t)))
 
-(setq org-babel-default-header-args:C++
-      '((:flags . "-std=c++23")
-        (:includes . "<iostream>")
-        (:results . "output")))
-(setq org-babel-default-header-args:python
-      '((:results . "output")))
-
 ;; Org structure templates: C-c C-,
-(add-to-list 'org-structure-template-alist '("p" . "src C++"))
+(add-to-list 'org-structure-template-alist
+             '("g" . "src C++ :includes iostream :flags -std=c++23\nstd::cout << \"hello world\\n\";"))
+(add-to-list 'org-structure-template-alist
+             '("p" . "src python  :results output\nprint(\"hello world\")"))
 
-(defun save-clang-format-org ()
-  (interactive)
-  (org-edit-src-code)
-  (clang-format-buffer)
-  (save-buffer)
-  (org-edit-src-exit))
+;; save src block
+(setq org-edit-src-auto-save-idle-delay 0.5)
+(setq org-edit-src-turn-on-auto-save t)
+
+(defalias 'clangformatbabelblock
+   (kmacro "C-c ' M-x c l a n g - f o r m a t <return> C-c '"))
+(global-set-key (kbd "C-c f") 'clangformatbabelblock)
 
 ;; ------ compilation buffer font size --------
 ;; (defun my-compilation-mode-font-setup ()
