@@ -40,7 +40,10 @@
    diff-hl
    rmsbolt
    gnuplot
-   gnuplot-mode))
+   gnuplot-mode
+   nov
+   pyvenv
+   python-black))
 (package-install-selected-packages 1)
 (package-autoremove)
 
@@ -134,6 +137,7 @@
 
 ;; ------ python lsp ------
 (add-hook 'python-mode-hook 'lsp)
+(python-black-on-save-mode 1)
 
 ;; ------ tramp --------
 (require 'tramp)
@@ -191,7 +195,6 @@
 (add-hook 'json-mode-hook 'flymake-json-load)
 
 ;; ------ diff colors -------
-
 (defun update-diff-colors ()
   "update the colors for diff faces"
   (set-face-attribute 'diff-refine-added nil
@@ -208,3 +211,6 @@
                       :foreground "#cceecc" :background "#336633"))
 (eval-after-load "diff-mode"
   '(update-diff-colors))
+
+;; ------ epub reader -------
+(add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
