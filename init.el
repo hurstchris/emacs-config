@@ -43,7 +43,7 @@
    gnuplot-mode
    nov
    pyvenv
-   python-black))
+   dap-mode))
 (package-install-selected-packages 1)
 (package-autoremove)
 
@@ -121,9 +121,19 @@
 
 (with-eval-after-load 'lsp-mode
   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
+  (require 'dap-cpptools)
+  (require 'dap-python)
   (yas-global-mode))
 
 (add-to-list 'auto-mode-alist '("\\.ipp\\'" . c++-mode)) ;; add ipp files to cpp mode
+
+;; ------ dap mode ------
+(dap-mode 1)
+(dap-ui-mode 1)
+(dap-ui-controls-mode 1)
+(dap-tooltip-mode 1)
+(tooltip-mode 1)
+(setq dap-python-debugger 'debugpy)
 
 ;; ------ clang format --------
 (require 'clang-format)
@@ -136,8 +146,7 @@
 (add-hook 'cmake-mode-hook 'lsp)
 
 ;; ------ python lsp ------
-(add-hook 'python-mode-hook 'lsp)
-(python-black-on-save-mode 1)
+;; (add-hook 'python-mode-hook 'lsp)
 
 ;; ------ tramp --------
 (require 'tramp)
