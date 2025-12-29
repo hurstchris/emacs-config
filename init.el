@@ -1,5 +1,24 @@
 ;; theme, see themes with M-x load-theme
-(load-theme 'leuven-dark)
+(use-package modus-themes
+  :ensure t
+  :demand t
+  :init
+  (modus-themes-include-derivatives-mode 1)
+  :config
+  (setq modus-themes-to-toggle '(modus-operandi modus-vivendi)
+        modus-themes-to-rotate modus-themes-items
+        modus-themes-mixed-fonts t
+        modus-themes-variable-pitch-ui t
+        modus-themes-italic-constructs t
+        modus-themes-bold-constructs t
+        modus-themes-completions '((t . (bold)))
+        modus-themes-prompts '(bold)
+        modus-themes-headings
+        '((agenda-structure . (variable-pitch light 2.2))
+          (agenda-date . (variable-pitch regular 1.3))
+          (t . (regular 1.15))))
+  (setq modus-themes-common-palette-overrides nil)
+  (modus-themes-load-theme 'modus-vivendi-tinted))
 
 ;; ------ Packages --------
 (require 'package)
@@ -43,7 +62,8 @@
    gnuplot-mode
    nov
    pyvenv
-   dap-mode))
+   dap-mode
+   modus-themes))
 (package-install-selected-packages 1)
 (package-autoremove)
 
@@ -54,7 +74,7 @@
 (scroll-bar-mode -1) ;; No scroll bar
 (setq inhibit-startup-screen t) ;; No Startup screen
 ;; (setq initial-buffer-choice "~/org/notes.org")
-(global-hl-line-mode 1) ;; highlight line mode
+;; (global-hl-line-mode 1) ;; highlight line mode
 ;; (set-face-attribute 'default nil :height 95) ;; Set default font sz
 
 ;; ------ Key bindings --------
@@ -121,18 +141,17 @@
 
 (with-eval-after-load 'lsp-mode
   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
-  (require 'dap-cpptools)
+  (require 'dap-gdb)
   (require 'dap-python)
   (yas-global-mode))
 
 (add-to-list 'auto-mode-alist '("\\.ipp\\'" . c++-mode)) ;; add ipp files to cpp mode
 
 ;; ------ dap mode ------
-(dap-mode 1)
-(dap-ui-mode 1)
-(dap-ui-controls-mode 1)
-(dap-tooltip-mode 1)
-(tooltip-mode 1)
+;; To get windows to work properly, when you open dap-debug
+;; run M-x dap-ui-many-windows-mode
+;; it turns it off...
+(setq dap-auto-configure-features '(sessions locals breakpoints expressions controls tooltip))
 (setq dap-python-debugger 'debugpy)
 
 ;; ------ clang format --------
@@ -147,6 +166,10 @@
 
 ;; ------ python lsp ------
 ;; (add-hook 'python-mode-hook 'lsp)
+(setq pylsp-plugins-pycodestyle-enabled nil
+      pylsp-plugins-pyflakes-enabled nil
+      pylsp-plugins-mccabe-enabled nil
+      pylsp-plugins-ruff-enabled nil)
 
 ;; ------ tramp --------
 (require 'tramp)
@@ -190,7 +213,7 @@
    (kmacro "C-c ' M-x c l a n g - f o r m a t <return> C-c '"))
 (global-set-key (kbd "C-c f") 'clangformatbabelblock)
 
-;; ------ compilation buffer font size --------
+;; ------ compilation buffer --------
 ;; (defun my-compilation-mode-font-setup ()
 ;;   (face-remap-add-relative 'default :height 85)) ;; Adjust here
 ;; (add-hook 'compilation-mode-hook #'my-compilation-mode-font-setup)
@@ -204,22 +227,37 @@
 (add-hook 'json-mode-hook 'flymake-json-load)
 
 ;; ------ diff colors -------
-(defun update-diff-colors ()
-  "update the colors for diff faces"
-  (set-face-attribute 'diff-refine-added nil
-                      :foreground "white" :background "darkgreen")
-  (set-face-attribute 'diff-refine-removed nil
-                      :foreground "white" :background "darkred")
-  (set-face-attribute 'diff-removed nil
-                      :foreground "#eecccc" :background "#663333")
-  (set-face-attribute 'diff-indicator-removed nil
-                      :foreground "#eecccc" :background "#663333")
-  (set-face-attribute 'diff-added nil
-                      :foreground "#cceecc" :background "#336633")
-  (set-face-attribute 'diff-indicator-added nil
-                      :foreground "#cceecc" :background "#336633"))
-(eval-after-load "diff-mode"
-  '(update-diff-colors))
+;; (defun update-diff-colors ()
+;;   "update the colors for diff faces"
+;;   (set-face-attribute 'diff-refine-added nil
+;;                       :foreground "white" :background "darkgreen")
+;;   (set-face-attribute 'diff-refine-removed nil
+;;                       :foreground "white" :background "darkred")
+;;   (set-face-attribute 'diff-removed nil
+;;                       :foreground "#eecccc" :background "#663333")
+;;   (set-face-attribute 'diff-indicator-removed nil
+;;                       :foreground "#eecccc" :background "#663333")
+;;   (set-face-attribute 'diff-added nil
+;;                       :foreground "#cceecc" :background "#336633")
+;;   (set-face-attribute 'diff-indicator-added nil
+;;                       :foreground "#cceecc" :background "#336633"))
+;; (eval-after-load "diff-mode"
+;;   '(update-diff-colors))
 
 ;; ------ epub reader -------
 (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("2d74de1cc32d00b20b347f2d0037b945a4158004f99877630afc034a674e3ab7" default))
+ '(package-selected-packages
+   '(fireplace magit projectile treemacs lsp-mode lsp-ui lsp-treemacs hydra flycheck company avy which-key yasnippet clang-format clang-format+ tramp xclip ox-clip org cmake-mode dockerfile-mode json-mode flymake-json helm-xref helm-lsp diff-hl rmsbolt gnuplot gnuplot-mode nov pyvenv dap-mode modus-themes)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
