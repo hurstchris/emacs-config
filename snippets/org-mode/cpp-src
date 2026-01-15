@@ -1,0 +1,14 @@
+# key: <cpp
+# name: cpp-src
+# expand-env: ((yas-indent-line 'fixed))
+# --
+#+begin_src C++ :flags -std=c++23
+  #include <iostream>
+  #include <vector>
+
+  int main()
+  {
+    std::cout << "hello world\n";
+  }
+  
+#+end_src

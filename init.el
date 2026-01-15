@@ -63,7 +63,10 @@
    nov
    pyvenv
    dap-mode
-   modus-themes))
+   modus-themes
+   yasnippet-snippets
+   yaml-mode
+   moody))
 (package-install-selected-packages 1)
 (package-autoremove)
 
@@ -76,6 +79,12 @@
 ;; (setq initial-buffer-choice "~/org/notes.org")
 ;; (global-hl-line-mode 1) ;; highlight line mode
 ;; (set-face-attribute 'default nil :height 95) ;; Set default font sz
+(use-package moody ;; mode line stuff
+  :config
+  (moody-replace-mode-line-front-space)
+  (moody-replace-mode-line-buffer-identification)
+  (moody-replace-vc-mode)
+  (setq-default moody-mode-line-height 20))
 
 ;; ------ Key bindings --------
 (global-set-key (kbd "C-x <up>") 'windmove-up) ;; moving around
@@ -102,9 +111,17 @@
 ;; (setq-default vc-handled-backends nil)
 (global-diff-hl-mode) ;; highlights changes
 
+;; ------ yasnippet ------
+(require 'yasnippet)
+(yas-reload-all)
+(add-hook 'prog-mode-hook #'yas-minor-mode)
+
 ;; ------ magit --------
 (setq magit-diff-refine-hunk 'all)
 (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+
+;; ---- treemacs -----
+(global-set-key [f9] 'treemacs) ;; Projectile compile to f8
 
 ;; ------ projectile config --------
 (use-package projectile
@@ -117,11 +134,9 @@
   (projectile-mode +1)
   (define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map))
 ;; (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
-;; (setq projectile-enable-caching t)
+(setq projectile-enable-caching t)
 ;; (setq projectile-enable-cmake-presets t)
 ;; (setq projectile-enable-caching 'persistent)
-;; (global-set-key [f8] "\C-x\p\c\c") ;; Projectile compile to f8
-
 
 ;; ------ lsp configs --------
 ;; (setq lsp-keymap-prefix "s-l")
@@ -158,6 +173,8 @@
 (require 'clang-format)
 (add-hook 'c++-mode-hook 'clang-format+-mode)
 (add-hook 'c-mode-hook 'clang-format+-mode)
+(setq-default clang-format-style "file:/home/chris/.emacs.d/.clang-format")
+(setq-default clang-format-on-save-mode 1)
 (setq-default clang-format-fallback-style "llvm") ;; sets fallback clang-format
 (setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "-j=4" "-background-index" "--header-insertion=iwyu" "--limit-references=0" "--limit-results=0")) ;; set some clang args
 (setq lsp-clients-clangd-args '("--header-insertion=never" "--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy")) ;; set some clang args
@@ -193,7 +210,6 @@
  '((C . t)
    (python . t)
    (emacs-lisp . t)
-   (ruby . t)
    (shell . t)
    (latex . t)
    (gnuplot . t)))
@@ -210,13 +226,62 @@
 (setq org-edit-src-turn-on-auto-save t)
 
 (defalias 'clangformatbabelblock
-   (kmacro "C-c ' M-x c l a n g - f o r m a t <return> C-c '"))
+   (kmacro "C-c ' M-x c l a n g - f o r m a t - b u f f e r <return> C-c '"))
 (global-set-key (kbd "C-c f") 'clangformatbabelblock)
 
 ;; ------ compilation buffer --------
-;; (defun my-compilation-mode-font-setup ()
-;;   (face-remap-add-relative 'default :height 85)) ;; Adjust here
-;; (add-hook 'compilation-mode-hook #'my-compilation-mode-font-setup)
+(defun my-compilation-mode-font-setup ()
+  (face-remap-add-relative 'default :height 100)) ;; Adjust here
+(add-hook 'compilation-mode-hook #'my-compilation-mode-font-setup)
+(add-to-list
+ 'display-buffer-alist
+ '("\\*compilation\\*"
+   (display-buffer-below-selected)
+   (window-height . 0.3)))
+(setq compilation-scroll-output t)
+(setq compilation-auto-jump-to-first-error t)
+(setq compilation-max-output-line-length nil)
+;; Other alist commands:
+;;(display-buffer-at-bottom)
+;;(display-buffer-same-window)
+;;(display-buffer-below-selected)
+;;(display-buffer-in-side-window)
+
+(defun ar/colorize-compilation-buffer ()
+  (let ((inhibit-read-only t))
+    (ansi-color-apply-on-region (point-min) (point-max))))
+(add-hook 'compilation-filter-hook 'ar/colorize-compilation-buffer)
+
+
+;; (defun my/close-compilation-window-on-success (buffer status)
+;;   "Close the compilation window if the compilation succeeded."
+;;   (when (and (stringp status)
+;;              (string-match-p "finished" status))
+;;     (let ((window (get-buffer-window buffer)))
+;;       (when (window-live-p window)
+;;         (delete-window window)))))
+(defun my/close-compilation-window-on-success (buffer status)
+  "Message on successful compilation, then close the compilation window after a delay."
+  (when (and (stringp status)
+             (string-match-p "finished" status))
+    (message "Compilation finished")
+    (let ((window (get-buffer-window buffer)))
+      (when (window-live-p window)
+        (run-at-time
+         2 nil
+         (lambda (win)
+           (when (window-live-p win)
+             (delete-window win)))
+         window)))))
+(add-hook 'compilation-finish-functions
+          #'my/close-compilation-window-on-success)
+
+;; ------ rgrep ------
+(add-to-list
+ 'display-buffer-alist
+ '("\\*grep\\*"
+   (display-buffer-below-selected)
+   (window-height . 0.3)))
 
 ;; ------ GDB ------
 (setq gdb-many-windows 't)
@@ -226,24 +291,6 @@
 ;; ------ JSON ------
 (add-hook 'json-mode-hook 'flymake-json-load)
 
-;; ------ diff colors -------
-;; (defun update-diff-colors ()
-;;   "update the colors for diff faces"
-;;   (set-face-attribute 'diff-refine-added nil
-;;                       :foreground "white" :background "darkgreen")
-;;   (set-face-attribute 'diff-refine-removed nil
-;;                       :foreground "white" :background "darkred")
-;;   (set-face-attribute 'diff-removed nil
-;;                       :foreground "#eecccc" :background "#663333")
-;;   (set-face-attribute 'diff-indicator-removed nil
-;;                       :foreground "#eecccc" :background "#663333")
-;;   (set-face-attribute 'diff-added nil
-;;                       :foreground "#cceecc" :background "#336633")
-;;   (set-face-attribute 'diff-indicator-added nil
-;;                       :foreground "#cceecc" :background "#336633"))
-;; (eval-after-load "diff-mode"
-;;   '(update-diff-colors))
-
 ;; ------ epub reader -------
 (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
 (custom-set-variables
@@ -251,10 +298,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("2d74de1cc32d00b20b347f2d0037b945a4158004f99877630afc034a674e3ab7" default))
- '(package-selected-packages
-   '(fireplace magit projectile treemacs lsp-mode lsp-ui lsp-treemacs hydra flycheck company avy which-key yasnippet clang-format clang-format+ tramp xclip ox-clip org cmake-mode dockerfile-mode json-mode flymake-json helm-xref helm-lsp diff-hl rmsbolt gnuplot gnuplot-mode nov pyvenv dap-mode modus-themes)))
+ '(safe-local-variable-values
+   '((projectile-project-compilation-cmd . "cmake --build build -- -j12"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

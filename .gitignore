@@ -52,7 +52,6 @@ eln-cache/
 straight/
 auto-save-list/
 undo-tree-history/
-snippets/
 
 .lsp-session-v1
 bookmarks
