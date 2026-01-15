@@ -261,9 +261,14 @@
 ;;       (when (window-live-p window)
 ;;         (delete-window window)))))
 (defun my/close-compilation-window-on-success (buffer status)
-  "Message on successful compilation, then close the compilation window after a delay."
+  "Message on successful compilation, then close the compilation window after a delay.
+Ignore grep buffers."
   (when (and (stringp status)
-             (string-match-p "finished" status))
+             (string-match-p "finished" status)
+             ;; Exclude grep buffers
+             (not (string-match-p
+                   "\\*\\(grep\\|rgrep\\|rg\\)\\*" ;; Add more here if desired
+                   (buffer-name buffer))))
     (message "Compilation finished")
     (let ((window (get-buffer-window buffer)))
       (when (window-live-p window)
