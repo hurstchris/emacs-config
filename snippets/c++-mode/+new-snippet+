@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: header ifndef guard
+# key: <def
+# --
+#ifndef ${1:`(upcase (replace-regexp-in-string "[^A-Za-z0-9]" "_" (file-name-nondirectory (or (buffer-file-name) "HEADER_HPP"))))`}
+#define $1
+
+$0
+
+#endif // $1
