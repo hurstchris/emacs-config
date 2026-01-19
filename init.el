@@ -66,7 +66,9 @@
    modus-themes
    yasnippet-snippets
    yaml-mode
-   moody))
+   moody
+   envrc
+   python-black))
 (package-install-selected-packages 1)
 (package-autoremove)
 
@@ -111,6 +113,11 @@
 ;; (setq-default vc-handled-backends nil)
 (global-diff-hl-mode) ;; highlights changes
 
+
+;; ----- direnv setup ------
+(use-package envrc
+  :hook (after-init . envrc-global-mode))
+
 ;; ------ yasnippet ------
 (require 'yasnippet)
 (yas-reload-all)
@@ -129,13 +136,13 @@
   (setq projectile-enable-caching t)
   (setq projectile-enable-cmake-presets t)
   (setq projectile-enable-caching 'persistent)
-  (global-set-key [f8] "\C-x\p\c\c") ;; Projectile compile to f8
+  (global-set-key [f8] 'projectile-compile-project) ;; Projectile compile to f8
+  (global-set-key [f7] 'projectile-test-project)
+  (global-set-key [f6] 'projectile-configure-project)
   :config
   (projectile-mode +1)
   (define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map))
-;; (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 (setq projectile-enable-caching t)
-;; (setq projectile-enable-cmake-presets t)
 ;; (setq projectile-enable-caching 'persistent)
 
 ;; ------ lsp configs --------
@@ -144,8 +151,8 @@
 ;; ------ c++ configs --------
 ;; (setq lsp-clients-clangd-executable "/usr/bin/clangd")
 ;; (setq lsp-clangd-binary-path "/usr/bin/clangd")
-(add-hook 'c++-mode-hook 'lsp)
-;; (add-hook 'c-mode-hook 'lsp)
+(add-hook 'c++-mode-hook 'lsp-deferred)
+;; (add-hook 'c-mode-hook 'lsp-deferred)
 
 (setq gc-cons-threshold (* 100 1024 1024)
       read-process-output-max (* 1024 1024)
@@ -178,15 +185,26 @@
 (setq-default clang-format-fallback-style "llvm") ;; sets fallback clang-format
 (setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "-j=4" "-background-index" "--header-insertion=iwyu" "--limit-references=0" "--limit-results=0")) ;; set some clang args
 (setq lsp-clients-clangd-args '("--header-insertion=never" "--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy")) ;; set some clang args
+
 ;; ------ cmake lsp ------
-(add-hook 'cmake-mode-hook 'lsp)
+(add-hook 'cmake-mode-hook 'lsp-deferred)
 
 ;; ------ python lsp ------
-;; (add-hook 'python-mode-hook 'lsp)
-(setq pylsp-plugins-pycodestyle-enabled nil
-      pylsp-plugins-pyflakes-enabled nil
-      pylsp-plugins-mccabe-enabled nil
-      pylsp-plugins-ruff-enabled nil)
+(use-package python-black
+  :hook (python-mode . python-black-on-save-mode)) ; Format on save
+(add-hook 'python-mode-hook 'lsp-deferred)
+
+(setq lsp-pylsp-plugins-mypy-enabled t)
+(setq lsp-pylsp-plugins-ruff-enabled t)
+(setq lsp-pylsp-plugins-flake8-enabled nil)
+(setq pylsp-plugins-pyflakes-enabled t)
+(setq lsp-pylsp-plugins-pycodestyle-enabled t)
+(setq lsp-pylsp-plugins-pydocstyle-enabled nil)
+
+(with-eval-after-load 'lsp-mode
+  (add-to-list 'lsp-disabled-clients 'ruff))
+
+;; (setq lsp-pylsp-plugins-mypy-config-sub-paths "~/.emacs/python-tools")
 
 ;; ------ tramp --------
 (require 'tramp)
@@ -252,14 +270,6 @@
     (ansi-color-apply-on-region (point-min) (point-max))))
 (add-hook 'compilation-filter-hook 'ar/colorize-compilation-buffer)
 
-
-;; (defun my/close-compilation-window-on-success (buffer status)
-;;   "Close the compilation window if the compilation succeeded."
-;;   (when (and (stringp status)
-;;              (string-match-p "finished" status))
-;;     (let ((window (get-buffer-window buffer)))
-;;       (when (window-live-p window)
-;;         (delete-window window)))))
 (defun my/close-compilation-window-on-success (buffer status)
   "Message on successful compilation, then close the compilation window after a delay.
 Ignore grep buffers."
@@ -304,7 +314,9 @@ Ignore grep buffers."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(safe-local-variable-values
-   '((projectile-project-compilation-cmd . "cmake --build build -- -j12"))))
+   '((projectile-project-test-cmd . "cmake --build build -- -j12 && ./build/test/tests")
+     (projectile-project-test-cmd . "cmake --build build -- -j12 && ./build/tests/tests")
+     (projectile-project-compilation-cmd . "cmake --build build -- -j12"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
