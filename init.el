@@ -151,7 +151,7 @@
 ;; ------ c++ configs --------
 ;; (setq lsp-clients-clangd-executable "/usr/bin/clangd")
 ;; (setq lsp-clangd-binary-path "/usr/bin/clangd")
-(add-hook 'c++-mode-hook 'lsp-deferred)
+(add-hook 'c++-mode-hook 'lsp)
 ;; (add-hook 'c-mode-hook 'lsp-deferred)
 
 (setq gc-cons-threshold (* 100 1024 1024)
@@ -165,7 +165,9 @@
   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
   (require 'dap-gdb)
   (require 'dap-python)
-  (yas-global-mode))
+  (yas-global-mode)
+  (setq lsp-semantic-tokens-enable nil)
+  (add-to-list 'lsp-disabled-clients 'ruff))
 
 (add-to-list 'auto-mode-alist '("\\.ipp\\'" . c++-mode)) ;; add ipp files to cpp mode
 
@@ -180,14 +182,14 @@
 (require 'clang-format)
 (add-hook 'c++-mode-hook 'clang-format+-mode)
 (add-hook 'c-mode-hook 'clang-format+-mode)
-(setq-default clang-format-style "file:/home/chris/.emacs.d/.clang-format")
-(setq-default clang-format-on-save-mode 1)
+;; (setq-default clang-format-style "file:/home/chris/.emacs.d/cpp-tools/.clang-format")
+(setq-default clang-format-on-save-mode t)
 (setq-default clang-format-fallback-style "llvm") ;; sets fallback clang-format
 (setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "-j=4" "-background-index" "--header-insertion=iwyu" "--limit-references=0" "--limit-results=0")) ;; set some clang args
 (setq lsp-clients-clangd-args '("--header-insertion=never" "--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy")) ;; set some clang args
 
 ;; ------ cmake lsp ------
-(add-hook 'cmake-mode-hook 'lsp-deferred)
+;; (add-hook 'cmake-mode-hook 'lsp-deferred)
 
 ;; ------ python lsp ------
 (use-package python-black
@@ -200,9 +202,6 @@
 (setq pylsp-plugins-pyflakes-enabled t)
 (setq lsp-pylsp-plugins-pycodestyle-enabled t)
 (setq lsp-pylsp-plugins-pydocstyle-enabled nil)
-
-(with-eval-after-load 'lsp-mode
-  (add-to-list 'lsp-disabled-clients 'ruff))
 
 ;; (setq lsp-pylsp-plugins-mypy-config-sub-paths "~/.emacs/python-tools")
 
@@ -270,26 +269,26 @@
     (ansi-color-apply-on-region (point-min) (point-max))))
 (add-hook 'compilation-filter-hook 'ar/colorize-compilation-buffer)
 
-(defun my/close-compilation-window-on-success (buffer status)
-  "Message on successful compilation, then close the compilation window after a delay.
-Ignore grep buffers."
-  (when (and (stringp status)
-             (string-match-p "finished" status)
-             ;; Exclude grep buffers
-             (not (string-match-p
-                   "\\*\\(grep\\|rgrep\\|rg\\)\\*" ;; Add more here if desired
-                   (buffer-name buffer))))
-    (message "Compilation finished")
-    (let ((window (get-buffer-window buffer)))
-      (when (window-live-p window)
-        (run-at-time
-         2 nil
-         (lambda (win)
-           (when (window-live-p win)
-             (delete-window win)))
-         window)))))
-(add-hook 'compilation-finish-functions
-          #'my/close-compilation-window-on-success)
+;; (defun my/close-compilation-window-on-success (buffer status)
+;;   "Message on successful compilation, then close the compilation window after a delay.
+;; Ignore grep buffers."
+;;   (when (and (stringp status)
+;;              (string-match-p "finished" status)
+;;              ;; Exclude grep buffers
+;;              (not (string-match-p
+;;                    "\\*\\(grep\\|rgrep\\|rg\\)\\*" ;; Add more here if desired
+;;                    (buffer-name buffer))))
+;;     (message "Compilation finished")
+;;     (let ((window (get-buffer-window buffer)))
+;;       (when (window-live-p window)
+;;         (run-at-time
+;;          2 nil
+;;          (lambda (win)
+;;            (when (window-live-p win)
+;;              (delete-window win)))
+;;          window)))))
+;; (add-hook 'compilation-finish-functions
+;;           #'my/close-compilation-window-on-success)
 
 ;; ------ rgrep ------
 (add-to-list
