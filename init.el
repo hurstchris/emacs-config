@@ -68,7 +68,8 @@
    yaml-mode
    moody
    envrc
-   python-black))
+   python-black
+   ibuffer-projectile))
 (package-install-selected-packages 1)
 (package-autoremove)
 
@@ -145,6 +146,24 @@
   (define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map))
 (setq projectile-enable-caching t)
 ;; (setq projectile-enable-caching 'persistent)
+
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+(setq ibuffer-projectile-mode t)
+(add-hook 'ibuffer-hook
+    (lambda ()
+      (ibuffer-projectile-set-filter-groups)
+      (unless (eq ibuffer-sorting-mode 'alphabetic)
+        (ibuffer-do-sort-by-alphabetic))))
+
+(setq ibuffer-formats
+      '((mark modified read-only " "
+              (name 18 18 :left :elide)
+              " "
+              (size 9 -1 :right)
+              " "
+              (mode 16 16 :left :elide)
+              " "
+              project-relative-file)))
 
 ;; ------ lsp configs --------
 ;; (setq lsp-keymap-prefix "s-l")
