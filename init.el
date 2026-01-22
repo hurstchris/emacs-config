@@ -112,7 +112,7 @@
 ;;   (lambda (&rest _) (other-window 1))) ;; buffer switching nonsense
 ;; (setq-default vc-handled-backends nil)
 (global-diff-hl-mode) ;; highlights changes
-
+(setq-default enable-remote-dir-locals t)
 
 ;; ----- direnv setup ------
 (use-package envrc
@@ -122,6 +122,7 @@
 (require 'yasnippet)
 (yas-reload-all)
 (add-hook 'prog-mode-hook #'yas-minor-mode)
+(yas-global-mode)
 
 ;; ------ magit --------
 (setq magit-diff-refine-hunk 'all)
@@ -165,7 +166,6 @@
   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
   (require 'dap-gdb)
   (require 'dap-python)
-  (yas-global-mode)
   (setq lsp-semantic-tokens-enable nil)
   (add-to-list 'lsp-disabled-clients 'ruff))
 
