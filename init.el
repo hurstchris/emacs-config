@@ -66,12 +66,59 @@
    modus-themes
    yasnippet-snippets
    yaml-mode
-   moody
    envrc
    python-black
-   ibuffer-projectile))
+   ibuffer-projectile
+   dape))
 (package-install-selected-packages 1)
 (package-autoremove)
+
+;;;;;;;;; TESTING DAPE
+(use-package dape
+  :preface
+  ;; By default dape shares the same keybinding prefix as `gud'
+  ;; If you do not want to use any prefix, set it to nil.
+  ;; (setq dape-key-prefix "\C-x\C-a")
+
+  :hook
+  ;; Save breakpoints on quit
+  ;; (kill-emacs . dape-breakpoint-save)
+  ;; Load breakpoints on startup
+  ;; (after-init . dape-breakpoint-load)
+
+  :custom
+  ;; Turn on global bindings for setting breakpoints with mouse
+  ;; (dape-breakpoint-global-mode +1)
+
+  ;; Info buffers to the right
+  ;; (dape-buffer-window-arrangement 'right)
+  ;; Info buffers like gud (gdb-mi)
+  ;; (dape-buffer-window-arrangement 'gud)
+  ;; (dape-info-hide-mode-line nil)
+
+  ;; Projectile users
+  ;; (dape-cwd-function #'projectile-project-root)
+
+  :config
+  ;; Pulse source line (performance hit)
+  ;; (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
+
+  ;; Save buffers on startup, useful for interpreted languages
+  ;; (add-hook 'dape-start-hook (lambda () (save-some-buffers t t)))
+
+  ;; Kill compile buffer on build success
+  ;; (add-hook 'dape-compile-hook #'kill-buffer)
+  )
+
+;; For a more ergonomic Emacs and `dape' experience
+(use-package repeat
+  :custom
+  (repeat-mode +1))
+
+;; Left and right side windows occupy full frame height
+(use-package emacs
+  :custom
+  (window-sides-vertical t))
 
 ;; ------ Display --------
 (setq-default frame-title-format "%b - Chris' emacs") ;; Set frame title of emacs
@@ -82,12 +129,6 @@
 ;; (setq initial-buffer-choice "~/org/notes.org")
 ;; (global-hl-line-mode 1) ;; highlight line mode
 ;; (set-face-attribute 'default nil :height 95) ;; Set default font sz
-(use-package moody ;; mode line stuff
-  :config
-  (moody-replace-mode-line-front-space)
-  (moody-replace-mode-line-buffer-identification)
-  (moody-replace-vc-mode)
-  (setq-default moody-mode-line-height 20))
 
 ;; ------ Key bindings --------
 (global-set-key (kbd "C-x <up>") 'windmove-up) ;; moving around
@@ -135,7 +176,6 @@
 ;; ------ projectile config --------
 (use-package projectile
   :init
-  (setq projectile-enable-caching t)
   (setq projectile-enable-cmake-presets t)
   (setq projectile-enable-caching 'persistent)
   (global-set-key [f8] 'projectile-compile-project) ;; Projectile compile to f8
@@ -145,25 +185,6 @@
   (projectile-mode +1)
   (define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map))
 (setq projectile-enable-caching t)
-;; (setq projectile-enable-caching 'persistent)
-
-(global-set-key (kbd "C-x C-b") 'ibuffer)
-(setq ibuffer-projectile-mode t)
-(add-hook 'ibuffer-hook
-    (lambda ()
-      (ibuffer-projectile-set-filter-groups)
-      (unless (eq ibuffer-sorting-mode 'alphabetic)
-        (ibuffer-do-sort-by-alphabetic))))
-
-(setq ibuffer-formats
-      '((mark modified read-only " "
-              (name 18 18 :left :elide)
-              " "
-              (size 9 -1 :right)
-              " "
-              (mode 16 16 :left :elide)
-              " "
-              project-relative-file)))
 
 ;; ------ lsp configs --------
 ;; (setq lsp-keymap-prefix "s-l")
@@ -203,7 +224,7 @@
 (add-hook 'c-mode-hook 'clang-format+-mode)
 ;; (setq-default clang-format-style "file:/home/chris/.emacs.d/cpp-tools/.clang-format")
 (setq-default clang-format-on-save-mode t)
-(setq-default clang-format-fallback-style "llvm") ;; sets fallback clang-format
+;; (setq-default clang-format-fallback-style "llvm") ;; sets fallback clang-format
 (setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "-j=4" "-background-index" "--header-insertion=iwyu" "--limit-references=0" "--limit-results=0")) ;; set some clang args
 (setq lsp-clients-clangd-args '("--header-insertion=never" "--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy")) ;; set some clang args
 
@@ -272,10 +293,11 @@
 (add-to-list
  'display-buffer-alist
  '("\\*compilation\\*"
-   (display-buffer-below-selected)
+   (display-buffer-at-bottom)
    (window-height . 0.3)))
+
 (setq compilation-scroll-output t)
-(setq compilation-auto-jump-to-first-error t)
+(setq compilation-auto-jump-to-first-error nil)
 (setq compilation-max-output-line-length nil)
 ;; Other alist commands:
 ;;(display-buffer-at-bottom)
