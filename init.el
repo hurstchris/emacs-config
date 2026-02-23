@@ -35,6 +35,8 @@
    magit
    projectile
    treemacs
+   treemacs-projectile
+   treemacs-tab-bar
    lsp-mode
    lsp-ui
    lsp-treemacs
@@ -67,58 +69,14 @@
    yasnippet-snippets
    yaml-mode
    envrc
-   python-black
    ibuffer-projectile
-   dape))
+   dape
+   pet
+   python-pytest
+   lsp-pyright
+   ruff-format))
 (package-install-selected-packages 1)
 (package-autoremove)
-
-;;;;;;;;; TESTING DAPE
-(use-package dape
-  :preface
-  ;; By default dape shares the same keybinding prefix as `gud'
-  ;; If you do not want to use any prefix, set it to nil.
-  ;; (setq dape-key-prefix "\C-x\C-a")
-
-  :hook
-  ;; Save breakpoints on quit
-  ;; (kill-emacs . dape-breakpoint-save)
-  ;; Load breakpoints on startup
-  ;; (after-init . dape-breakpoint-load)
-
-  :custom
-  ;; Turn on global bindings for setting breakpoints with mouse
-  ;; (dape-breakpoint-global-mode +1)
-
-  ;; Info buffers to the right
-  ;; (dape-buffer-window-arrangement 'right)
-  ;; Info buffers like gud (gdb-mi)
-  ;; (dape-buffer-window-arrangement 'gud)
-  ;; (dape-info-hide-mode-line nil)
-
-  ;; Projectile users
-  ;; (dape-cwd-function #'projectile-project-root)
-
-  :config
-  ;; Pulse source line (performance hit)
-  ;; (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
-
-  ;; Save buffers on startup, useful for interpreted languages
-  ;; (add-hook 'dape-start-hook (lambda () (save-some-buffers t t)))
-
-  ;; Kill compile buffer on build success
-  ;; (add-hook 'dape-compile-hook #'kill-buffer)
-  )
-
-;; For a more ergonomic Emacs and `dape' experience
-(use-package repeat
-  :custom
-  (repeat-mode +1))
-
-;; Left and right side windows occupy full frame height
-(use-package emacs
-  :custom
-  (window-sides-vertical t))
 
 ;; ------ Display --------
 (setq-default frame-title-format "%b - Chris' emacs") ;; Set frame title of emacs
@@ -126,8 +84,6 @@
 (menu-bar-mode -1) ;; No menu bar
 (scroll-bar-mode -1) ;; No scroll bar
 (setq inhibit-startup-screen t) ;; No Startup screen
-;; (setq initial-buffer-choice "~/org/notes.org")
-;; (global-hl-line-mode 1) ;; highlight line mode
 ;; (set-face-attribute 'default nil :height 95) ;; Set default font sz
 
 ;; ------ Key bindings --------
@@ -146,13 +102,9 @@
 (global-auto-revert-mode 1) ;; Global auto revert
 (setq auto-revert-remote-files t) ;; Revert remote files as well
 (setq ring-bell-function 'ignore) ;; Stop the bell
-;; (global-display-line-numbers-mode) ;; Set line #'s
 (add-hook 'prog-mode-hook 'display-line-numbers-mode) ;; set line #'s only for prog mode
 (put 'erase-buffer 'disabled nil) ;; Don't ask warning for clear buffer (cause i dont use it enough)
 (which-key-mode 1) ;; which key mode is nice
-;; (advice-add 'list-buffers :after
-;;   (lambda (&rest _) (other-window 1))) ;; buffer switching nonsense
-;; (setq-default vc-handled-backends nil)
 (global-diff-hl-mode) ;; highlights changes
 (setq-default enable-remote-dir-locals t)
 
@@ -177,6 +129,7 @@
 (use-package projectile
   :init
   (setq projectile-enable-cmake-presets t)
+  (setq projectile-enable-caching t)
   (setq projectile-enable-caching 'persistent)
   (global-set-key [f8] 'projectile-compile-project) ;; Projectile compile to f8
   (global-set-key [f7] 'projectile-test-project)
@@ -184,17 +137,8 @@
   :config
   (projectile-mode +1)
   (define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map))
-(setq projectile-enable-caching t)
 
 ;; ------ lsp configs --------
-;; (setq lsp-keymap-prefix "s-l")
-
-;; ------ c++ configs --------
-;; (setq lsp-clients-clangd-executable "/usr/bin/clangd")
-;; (setq lsp-clangd-binary-path "/usr/bin/clangd")
-(add-hook 'c++-mode-hook 'lsp)
-;; (add-hook 'c-mode-hook 'lsp-deferred)
-
 (setq gc-cons-threshold (* 100 1024 1024)
       read-process-output-max (* 1024 1024)
       treemacs-space-between-root-nodes nil
@@ -206,8 +150,15 @@
   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
   (require 'dap-gdb)
   (require 'dap-python)
-  (setq lsp-semantic-tokens-enable nil)
-  (add-to-list 'lsp-disabled-clients 'ruff))
+  (setq lsp-semantic-tokens-enable t))
+
+;; (setq lsp-format-buffer-on-save t)
+
+;; ------ c++ configs --------
+(add-hook 'c++-mode-hook 'lsp)
+;; (add-hook 'c-mode-hook 'lsp)
+;; (setq lsp-clients-clangd-executable "/usr/bin/clangd")
+;; (setq lsp-clangd-binary-path "/usr/bin/clangd")
 
 (add-to-list 'auto-mode-alist '("\\.ipp\\'" . c++-mode)) ;; add ipp files to cpp mode
 
@@ -218,32 +169,56 @@
 (setq dap-auto-configure-features '(sessions locals breakpoints expressions controls tooltip))
 (setq dap-python-debugger 'debugpy)
 
+;; ------ dape ------
+(set-fringe-mode 12)
+(use-package dape
+  :custom
+  (dape-breakpoint-global-mode +1)
+  (dape-info-hide-mode-line nil)
+  (dape-cwd-function #'projectile-project-root)
+  :config
+  (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
+  )
+(use-package repeat
+  :custom
+  (repeat-mode +1))
+(use-package emacs
+  :custom
+  (window-sides-vertical t))
+
 ;; ------ clang format --------
 (require 'clang-format)
 (add-hook 'c++-mode-hook 'clang-format+-mode)
 (add-hook 'c-mode-hook 'clang-format+-mode)
-;; (setq-default clang-format-style "file:/home/chris/.emacs.d/cpp-tools/.clang-format")
+(setq-default clang-format-style "file:/home/chris/.emacs.d/cpp-tools/.clang-format")
 (setq-default clang-format-on-save-mode t)
 ;; (setq-default clang-format-fallback-style "llvm") ;; sets fallback clang-format
-(setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "-j=4" "-background-index" "--header-insertion=iwyu" "--limit-references=0" "--limit-results=0")) ;; set some clang args
+;; (setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "-j=4" "-background-index" "--header-insertion=iwyu" "--limit-references=0" "--limit-results=0")) ;; set some clang args
 (setq lsp-clients-clangd-args '("--header-insertion=never" "--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy")) ;; set some clang args
 
-;; ------ cmake lsp ------
-;; (add-hook 'cmake-mode-hook 'lsp-deferred)
-
 ;; ------ python lsp ------
-(use-package python-black
-  :hook (python-mode . python-black-on-save-mode)) ; Format on save
+;; For a new system, run
+;; uv tool install ruff@latest
+;; uv tool install pyright
+;; For dape, youll need debugpy in the venv unfortunately
+;; for global lsp stuff
+
 (add-hook 'python-mode-hook 'lsp-deferred)
 
-(setq lsp-pylsp-plugins-mypy-enabled t)
-(setq lsp-pylsp-plugins-ruff-enabled t)
-(setq lsp-pylsp-plugins-flake8-enabled nil)
-(setq pylsp-plugins-pyflakes-enabled t)
-(setq lsp-pylsp-plugins-pycodestyle-enabled t)
-(setq lsp-pylsp-plugins-pydocstyle-enabled nil)
+(use-package lsp-pyright
+  :ensure t
+  :custom (lsp-pyright-langserver-command "pyright") ;; or basedpyright
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp-deferred))))  ; or lsp-deferred
 
-;; (setq lsp-pylsp-plugins-mypy-config-sub-paths "~/.emacs/python-tools")
+(require 'ruff-format)
+(add-hook 'python-mode-hook 'ruff-format-on-save-mode)
+
+;; ------ emacs pet --------
+(use-package pet
+  :config
+  (add-hook 'python-base-mode-hook 'pet-mode -10))
 
 ;; ------ tramp --------
 (require 'tramp)
@@ -310,27 +285,6 @@
     (ansi-color-apply-on-region (point-min) (point-max))))
 (add-hook 'compilation-filter-hook 'ar/colorize-compilation-buffer)
 
-;; (defun my/close-compilation-window-on-success (buffer status)
-;;   "Message on successful compilation, then close the compilation window after a delay.
-;; Ignore grep buffers."
-;;   (when (and (stringp status)
-;;              (string-match-p "finished" status)
-;;              ;; Exclude grep buffers
-;;              (not (string-match-p
-;;                    "\\*\\(grep\\|rgrep\\|rg\\)\\*" ;; Add more here if desired
-;;                    (buffer-name buffer))))
-;;     (message "Compilation finished")
-;;     (let ((window (get-buffer-window buffer)))
-;;       (when (window-live-p window)
-;;         (run-at-time
-;;          2 nil
-;;          (lambda (win)
-;;            (when (window-live-p win)
-;;              (delete-window win)))
-;;          window)))))
-;; (add-hook 'compilation-finish-functions
-;;           #'my/close-compilation-window-on-success)
-
 ;; ------ rgrep ------
 (add-to-list
  'display-buffer-alist
@@ -348,18 +302,3 @@
 
 ;; ------ epub reader -------
 (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(safe-local-variable-values
-   '((projectile-project-test-cmd . "cmake --build build -- -j12 && ./build/test/tests")
-     (projectile-project-test-cmd . "cmake --build build -- -j12 && ./build/tests/tests")
-     (projectile-project-compilation-cmd . "cmake --build build -- -j12"))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
