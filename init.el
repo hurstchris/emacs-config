@@ -85,6 +85,7 @@
 (scroll-bar-mode -1) ;; No scroll bar
 (setq inhibit-startup-screen t) ;; No Startup screen
 ;; (set-face-attribute 'default nil :height 95) ;; Set default font sz
+(setq split-height-threshold nil)
 
 ;; ------ Key bindings --------
 (global-set-key (kbd "C-x <up>") 'windmove-up) ;; moving around
@@ -121,6 +122,7 @@
 ;; ------ magit --------
 (setq magit-diff-refine-hunk 'all)
 (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+(setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
 
 ;; ---- treemacs -----
 (global-set-key [f9] 'treemacs) ;; Projectile compile to f8
@@ -141,10 +143,10 @@
 ;; ------ lsp configs --------
 (setq gc-cons-threshold (* 100 1024 1024)
       read-process-output-max (* 1024 1024)
-      treemacs-space-between-root-nodes nil
-      company-idle-delay 0.0
+      treemacs-space-between-root-nodes t
+      company-idle-delay 0.5
       company-minimum-prefix-length 1
-      lsp-idle-delay 0.05)  ;; clangd is fast
+      lsp-idle-delay 0.5)  ;; clangd is fast
 
 (with-eval-after-load 'lsp-mode
   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
@@ -171,7 +173,22 @@
 
 ;; ------ dape ------
 (set-fringe-mode 12)
+
+(require 'transient)
+
+(transient-define-prefix my/dape-transient ()
+  "Dape transient."
+  [["Breakpoints"
+    ("b" "Toggle breakpoint" dape-breakpoint-toggle)]])
+
+(defun my/dape-keys ()
+  (local-set-key (kbd "C-c d") #'my/dape-transient))
+
+
 (use-package dape
+  :hook
+  ((dape-mode . my/dape-keys)
+   (dape-repl-mode . my/dape-keys))
   :custom
   (dape-breakpoint-global-mode +1)
   (dape-info-hide-mode-line nil)
@@ -179,12 +196,13 @@
   :config
   (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
   )
-(use-package repeat
-  :custom
-  (repeat-mode +1))
+;; (use-package repeat
+;;   :custom
+;;   (repeat-mode +1))
 (use-package emacs
   :custom
   (window-sides-vertical t))
+
 
 ;; ------ clang format --------
 (require 'clang-format)
@@ -286,11 +304,14 @@
 (add-hook 'compilation-filter-hook 'ar/colorize-compilation-buffer)
 
 ;; ------ rgrep ------
+(global-set-key [f10] 'rgrep)
 (add-to-list
  'display-buffer-alist
  '("\\*grep\\*"
-   (display-buffer-below-selected)
-   (window-height . 0.3)))
+   (display-buffer-in-side-window)
+   (side . left)
+   (slot . 0)
+   (window-width . 0.3)))
 
 ;; ------ GDB ------
 (setq gdb-many-windows 't)
