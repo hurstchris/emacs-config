@@ -1,0 +1,26 @@
+#+title: Derivation of the Kalman FIlter's F and Q
+#+author: Chris Hurst
+#+STARTUP: overview
+#+OPTIONS: num:nil
+#+OPTIONS: d:t
+#+PROPERTY: header-args :exports both
+
+* First
+Start with the linear first order ODE.
+
+\begin{equation}
+\frac{\partial \mathbf{x}(t)}{\partial t} = \mathbf{A} \mathbf{x}(t) + \mathbf{B} w
+\end{equation}
+
+To solve, let the integrating factor be $e^{At}$.  Multiply this to both sides:
+\begin{equation}
+e^{At} \frac{\partial \mathbf{x}(t)}{\partial t} - e^{At} \mathbf{A} \mathbf{x}(t)= e^{At}  \mathbf{B} w
+\end{equation}
+The product rule allows us to do this:
+\begin{equation}
+e^{At} \frac{\partial \mathbf{x}(t)}{\partial t} + e^{At} \mathbf{A} \mathbf{x}(t)=\frac{\partial}{\partial{t}} \mathbf{x}(t) e^{At}
+\end{equation}
+So, we can get
+\begin{equation}
+\frac{\partial}{\partial{t}} \mathbf{x}(t) e^{At} = 
+\end{equation}

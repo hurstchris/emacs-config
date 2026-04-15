@@ -1,0 +1,116 @@
+#+TITLE: Two Forms of the Dot Product
+#+AUTHOR: Gregory Gundersen
+#+DATE: 2018-06-26
+#+OPTIONS: num:nil
+#+OPTIONS: d:t
+
+* Introduction
+
+The dot product is often introduced in two ways:
+
+1. Algebraic definition
+2. Geometric definition
+
+The goal is to show that these definitions are equivalent.
+
+* Algebraic definition
+
+Let
+
+\[
+\mathbf{a} = (a_1, a_2, \dots, a_n)
+\]
+
+\[
+\mathbf{b} = (b_1, b_2, \dots, b_n)
+\]
+
+The dot product is defined as
+
+\[
+\mathbf{a} \cdot \mathbf{b} =
+\sum_{i=1}^{n} a_i b_i
+\]
+
+* Geometric definition
+
+The dot product can also be written as
+
+\[
+\mathbf{a} \cdot \mathbf{b} = ||\mathbf{a}|| \, ||\mathbf{b}|| \cos(\theta)
+\]
+
+where
+
+- \(||\mathbf{a}||\) is the magnitude of vector a
+- \(||\mathbf{b}||\) is the magnitude of vector b
+- \(\theta\) is the angle between them
+
+* Goal
+
+Show that
+
+\[
+\sum_{i=1}^{n} a_i b_i = ||\mathbf{a}|| \, ||\mathbf{b}|| \cos(\theta)
+\]
+
+* Proof idea
+
+The proof relies on the law of cosines.
+
+Consider the vector
+
+\[
+\mathbf{c} = \mathbf{a} - \mathbf{b}
+\]
+
+Then
+
+
+\[
+(|| \mathbf{c}||) ^2 = (\mathbf{a} - \mathbf{b}) \cdot (\mathbf{a} - \mathbf{b})
+\]
+
+* Expand the expression
+
+Expanding gives
+
+\[
+(||\mathbf{a}||)^2 + (||\mathbf{b}||)^2 - 2(\mathbf{a} \cdot \mathbf{b})
+\]
+
+* Apply the law of cosines
+
+From geometry,
+
+\[ ||\mathbf{c}||^2 =||\mathbf{a}||^2 +||\mathbf{b}||^2-2 ||\mathbf{a}|| ||\mathbf{b}|| \cos(\theta)
+\]
+
+* Equate the two expressions
+
+Comparing the expressions gives
+
+\[
+\mathbf{a} \cdot \mathbf{b}
+=
+||\mathbf{a}|| ||\mathbf{b}|| \cos(\theta)
+\]
+
+* Interpretation
+
+The dot product measures how aligned two vectors are.
+
+Special cases:
+
+- \(\theta = 0\): vectors aligned → maximum dot product
+- \(\theta = \pi/2\): orthogonal → dot product = 0
+- \(\theta = \pi\): opposite directions → negative dot product
+
+* Summary
+
+Two equivalent views of the dot product:
+
+1. Algebraic: sum of component-wise products
+2. Geometric: product of magnitudes scaled by cosine of angle
+
+Both represent the same operation.

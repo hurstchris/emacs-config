@@ -1,0 +1,11 @@
+#+TITLE: This is a test blog and stuff
+#+AUTHOR: Chris Hurst
+#+DATE: 2026-03-13
+#+OPTIONS: num:nil
+#+OPTIONS: d:t
+#+OPTIONS: toc:t
+
+* Introduction
+This is the intro
+* Section 1
+this is section 1

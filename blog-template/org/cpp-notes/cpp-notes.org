@@ -1,0 +1,82 @@
+#+title: Cpp notes
+#+author: Chris Hurst
+#+STARTUP: overview
+#+OPTIONS: num:nil
+#+OPTIONS: d:t
+#+OPTIONS: toc:t
+#+PROPERTY: header-args :exports both
+
+* State design pattern
+This is an example of the state design pattern. 
+
+#+begin_src C++ :flags -std=c++23 :results output replace
+#include <iostream>
+#include <vector>
+
+struct Track_state;
+struct Candidate;
+struct Confirmed;
+struct Terminated;
+
+struct Track {
+  Track();
+  int feature{0};
+  Track_state *state{nullptr};
+  void check();
+  void change_state(Track_state *new_state) { state = new_state; }
+};
+
+struct Track_state {
+  Track_state(Track *in_track) { track = in_track; };
+
+  virtual void check() = 0;
+
+  Track *track;
+};
+
+struct Candidate : Track_state {
+  Candidate(Track *in_track) : Track_state(in_track){};
+  void check() override;
+};
+
+struct Confirmed : Track_state {
+  Confirmed(Track *in_track) : Track_state(in_track){};
+  void check() override;
+};
+
+struct Terminated : Track_state {
+  Terminated(Track *in_track) : Track_state(in_track){};
+  void check() override;
+};
+
+Track::Track() { state = new Candidate(this); };
+
+void Track::check() { state->check(); };
+
+void Candidate::check() {
+  std::cout << "Called check in Candidate\n";
+  if (track->feature > 2) {
+    std::cout << "Changing to Confirmed\n";
+    track->change_state(new Confirmed(track));
+  }
+};
+
+void Confirmed::check() {
+  std::cout << "Called check in Confirmed\n";
+  if (track->feature > 4) {
+    std::cout << "Changing to Terminated\n";
+    track->change_state(new Terminated(track));
+  }
+};
+
+void Terminated::check() { std::cout << "Called check in Terminated\n"; };
+
+int main() {
+
+  Track track;
+  for (int i = 0; i < 7; ++i) {
+    track.feature = i;
+    track.check();
+  }
+}
+#+end_src

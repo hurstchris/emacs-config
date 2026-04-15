@@ -1,0 +1,101 @@
+#+TITLE: Principal Component Analysis of a Constant Position Kalman Filter
+#+AUTHOR: Chris Hurst
+#+DATE: 2026-03-13
+#+OPTIONS: num:nil
+#+OPTIONS: d:t
+#+OPTIONS: toc:t
+
+* Introduction
+This is a short investigation on the principal components of
+1) Kalman filter posterior states
+2) Kalman filter residuals
+for a constant position Kalman filter.
+
+* Analysis
+First, let's look at an object not drifting which has random noise about (0,0).
+
+#+CAPTION: Random noise object.  This is how it *should* behave.  The Kalman filter slightly lags behind the measurements.
+#+NAME: fig:randomnoise
+[[file:~/org/test-blog/org/static/images/random_noise.png]]
+
+The bottom subplot shows the residuals and the direction of the principal eigenvector.
+The eigenvalue ratio of the residuals is 3.45.  
+
+
+Now an object with drift, and little noise.
+
+#+CAPTION: Drifting object with little noise.  The principal eigenvector for both residuals shows we get the direction of drift.
+#+NAME: fig:drift_no_noise
+[[file:~/org/test-blog/org/static/images/drift_smooth.png]]
+
+Here the eigenvectors are pointing in the direction of drift.
+There is little variance in the perpendicular direction of the object's motion.
+The eigenvalue ratio of the residuals is 582.7. Quite large.
+
+But what about the case where an object is drifting but has fluctuations perpendicular to the motion of travel?
+
+#+CAPTION: Drifting object with high variance in the perpendicular direction of travel.
+#+NAME: fig:drift_no_noise
+[[file:~/org/test-blog/org/static/images/drift_with_up_and_down.png]]
+
+The principal eigenvector for the residuals points in the direction of most variance, /not/ the direction of drift.
+This is not quite what I expected before.
+The eigenvalue ratio is 10.5.
+
+
+Additionally, this means that if an object has high variance but zero mean, we also get misleading results.
+
+#+CAPTION: Object with no drift, but measurements bouncing up and down between y, with little change in x.
+#+NAME: fig:high_var_y
+[[file:~/org/test-blog/org/static/images/high_variance_y.png]]
+
+Again, misleading.
+The eigenvector ratio is 34445.5, which is way too much.
+
+* A new idea
+So it looks like some fancy EVD isn't going to work for these purposes.
+Let's try something else.
+
+The new plan is to take the mean of the residuals and then normalize them against their covariance.
+\begin{equation}
+\tilde{S} = \frac{1}{N-1} \nu^{\text{T}} \nu
+\end{equation}
+Perform EVD on the $2\times2$ matrix $\tilde{S}$ to find $\tilde{S}^{-1/2}$.
+I am using $\tilde{S}$ instead of $S$ to distinguish between the innovation covariance of the kalman filter.
+This is a `sample' innovation covariance.
+\begin{equation}
+\tilde{S}^{-1/2} = \Lambda D^{-1/2} \Lambda^{\text{T}}
+\end{equation}
+And now the normalized innovations are
+\begin{equation}
+\tilde{\nu}_i = \tilde{S}^{-1/2} \nu_i
+\end{equation}
+And the drift vector can be found by taking the average of $\tilde{\nu}_i$:
+\begin{equation}
+\bar{d} = \frac{1}{N} \sum_i^N{\tilde{\nu}_i}
+\end{equation}
+
+Lets plot this using the same scenarios as before.
+The bottom plots are the average drift vector.
+
+#+CAPTION: Random noise object.  The drift magnitude is $d=0.109$.
+#+NAME: fig:high_var_y
+[[file:~/org/test-blog/org/static/images/drift_random_noise.png]]
+
+
+#+CAPTION: Drifting object with little noise. The drift magnitude is $d=0.912$.
+#+NAME: fig:high_var_y
+[[file:~/org/test-blog/org/static/images/drift_drift_smooth.png]]
+
+
+#+CAPTION: Drifting object with high variance in the perpendicular direction of travel. The drift magnitude is $d=0.907$.
+#+NAME: fig:high_var_y
+[[file:~/org/test-blog/org/static/images/drift_drift_with_up_and_down.png]]
+
+
+#+CAPTION: Object with no drift, but measurements bouncing up and down between y, with little change in x. The drift magnitude is $d=0.205$.
+#+NAME: fig:high_var_y
+[[file:~/org/test-blog/org/static/images/drift_high_variance_y.png]]
+
+This is a lot more in line with a metric for something that is drifting.
+

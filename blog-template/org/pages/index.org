@@ -1,0 +1,11 @@
+#+title: Blog
+#+OPTIONS: toc:nil
+#+OPTIONS: num:nil
+
+This is my blog.  Feel free to look around.
+
+* [[file:daily-notes.html][Daily (Random) Notes]]
+
+* [[file:cpp-notes.html][C++ Notes]]
+
+* [[file:posts-sitemap.html][Blog posts]]

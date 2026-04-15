@@ -1,0 +1,50 @@
+#+title: Daily (Random) Notes
+#+author: Chris Hurst
+#+STARTUP: overview
+#+OPTIONS: num:nil
+#+OPTIONS: d:t
+#+OPTIONS: toc:2
+#+PROPERTY: header-args:exports both
+* 2026
+** 2026-02 February
+*** 2026-02-22 Sunday
+**** yayy
+**** Hi tori :)
+sd mklsd
+** 2026-03 March
+*** 2026-03-22 Sunday
+**** This is a dumb test
+#+ begin_src python : results output
+print("hi tori :)")
+#+ end_src
+** 2026-04 April
+*** 2026-04-07 Tuesday
+**** std::move nonsense
+#+begin_src C++ :flags -std=c++23
+
+#include <iostream>
+#include <string>
+#include <vector>
+
+std::string release(std::string& str)
+{
+  return std::move(str);
+}
+
+int main() {
+
+std::string foo{"foo"};
+std::string bar = release(foo);
+
+std::cout << foo << "\n";
+std::cout << bar << "\n";
+
+}
+
+#+end_src
+
+#+RESULTS:
+: foo
+*** 2026-04-09 Thursday
+**** Test
+Hi Tori x5

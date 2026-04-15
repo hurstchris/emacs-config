@@ -1,0 +1,10 @@
+#+title: Cpp notes
+#+author: Chris Hurst
+#+STARTUP: overview
+#+OPTIONS: num:nil
+#+OPTIONS: d:t
+#+PROPERTY: header-args :exports both
+
+* General notes
+** Clang-format
+Clang-format makes it easy for others to use your repo automatically
