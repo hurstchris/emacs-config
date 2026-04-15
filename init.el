@@ -1,25 +1,3 @@
-;; theme, see themes with M-x load-theme
-(use-package modus-themes
-  :ensure t
-  :demand t
-  :init
-  (modus-themes-include-derivatives-mode 1)
-  :config
-  (setq modus-themes-to-toggle '(modus-operandi modus-vivendi)
-        modus-themes-to-rotate modus-themes-items
-        modus-themes-mixed-fonts t
-        modus-themes-variable-pitch-ui t
-        modus-themes-italic-constructs t
-        modus-themes-bold-constructs t
-        modus-themes-completions '((t . (bold)))
-        modus-themes-prompts '(bold)
-        modus-themes-headings
-        '((agenda-structure . (variable-pitch light 2.2))
-          (agenda-date . (variable-pitch regular 1.3))
-          (t . (regular 1.15))))
-  (setq modus-themes-common-palette-overrides nil)
-  (modus-themes-load-theme 'modus-vivendi-tinted))
-
 ;; ------ Packages --------
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -32,6 +10,7 @@
 (setq
  package-selected-packages
  '(fireplace
+   async
    magit
    projectile
    treemacs
@@ -56,8 +35,6 @@
    dockerfile-mode
    json-mode
    flymake-json
-   helm-xref
-   helm-lsp
    diff-hl
    rmsbolt
    gnuplot
@@ -71,12 +48,34 @@
    envrc
    ibuffer-projectile
    dape
-   pet
    python-pytest
    lsp-pyright
-   ruff-format))
+   ruff-format
+   vertico))
 (package-install-selected-packages 1)
 (package-autoremove)
+
+;; theme, see themes with M-x load-theme
+(use-package modus-themes
+  :ensure t
+  :demand t
+  :init
+  (modus-themes-include-derivatives-mode 1)
+  :config
+  (setq modus-themes-to-toggle '(modus-operandi modus-vivendi)
+        modus-themes-to-rotate modus-themes-items
+        modus-themes-mixed-fonts t
+        modus-themes-variable-pitch-ui t
+        modus-themes-italic-constructs t
+        modus-themes-bold-constructs t
+        modus-themes-completions '((t . (bold)))
+        modus-themes-prompts '(bold)
+        modus-themes-headings
+        '((agenda-structure . (variable-pitch light 2.2))
+          (agenda-date . (variable-pitch regular 1.3))
+          (t . (regular 1.15))))
+  (setq modus-themes-common-palette-overrides nil)
+  (modus-themes-load-theme 'modus-vivendi-tinted))
 
 ;; ------ Display --------
 (setq-default frame-title-format "%b - Chris' emacs") ;; Set frame title of emacs
@@ -108,6 +107,16 @@
 (which-key-mode 1) ;; which key mode is nice
 (global-diff-hl-mode) ;; highlights changes
 (setq-default enable-remote-dir-locals t)
+(setq completion-auto-help 'always)
+
+
+;; ----- vertico -------
+(use-package vertico :init (vertico-mode))
+;; This next stuff is more for lsp
+(setq xref-show-xrefs-function #'xref-show-definitions-completing-read
+      xref-show-definitions-function #'xref-show-definitions-completing-read)
+;; places results in another buffer
+;; (setq xref-show-xrefs-function #'xref--show-xref-buffer)
 
 ;; ----- direnv setup ------
 (use-package envrc
@@ -203,13 +212,17 @@
   :custom
   (window-sides-vertical t))
 
+;; ------ rmsbolt -----
+(defun my/rmsbolt-after (&rest _args)
+  (compile (concat rmsbolt-command " rmsbolt.cpp -o a.out && ./a.out")))
+(advice-add 'rmsbolt-compile :after #'my/rmsbolt-after)
 
 ;; ------ clang format --------
 (require 'clang-format)
 (add-hook 'c++-mode-hook 'clang-format+-mode)
 (add-hook 'c-mode-hook 'clang-format+-mode)
 (setq-default clang-format-style "file:/home/chris/.emacs.d/cpp-tools/.clang-format")
-(setq-default clang-format-on-save-mode t)
+;; (setq-default clang-format-on-save-mode t)
 ;; (setq-default clang-format-fallback-style "llvm") ;; sets fallback clang-format
 ;; (setq lsp-clients-clangd-args '("--header-insertion-decorators=0" "-j=4" "-background-index" "--header-insertion=iwyu" "--limit-references=0" "--limit-results=0")) ;; set some clang args
 (setq lsp-clients-clangd-args '("--header-insertion=never" "--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy")) ;; set some clang args
@@ -234,9 +247,10 @@
 (add-hook 'python-mode-hook 'ruff-format-on-save-mode)
 
 ;; ------ emacs pet --------
-(use-package pet
-  :config
-  (add-hook 'python-base-mode-hook 'pet-mode -10))
+;; this is way too slow, use direnv or something
+;; (use-package pet
+;;   :config
+;;   (add-hook 'python-base-mode-hook 'pet-mode -10))
 
 ;; ------ tramp --------
 (require 'tramp)
@@ -247,14 +261,18 @@
 (global-set-key (kbd "C-c c") #'org-capture)
 (setq org-capture-templates
       '(("l" "Log" entry (file+datetree "~/org/notes.org")
-         "* %? \n %a")))
+         "* %? \n %a")
+      ("r" "Random Notes" entry (file+datetree "/home/chris/org/test-blog/org/daily-notes/daily-notes.org")
+       "* %?")
+      ("c" "C++ Notes" entry (file "/home/chris/org/test-blog/org/cpp-notes/cpp-notes.org")
+         "* %?")))
 (add-hook 'org-mode-hook 'org-indent-mode) ;; Make the indentation look nicer
 (setq org-log-done 'time) ;; When a TODO is set to a done state, record a timestamp
 (setq org-export-with-sub-superscripts '{})
 (setq org-export-backends '(ascii beamer html latex md odt))
 (setq org-confirm-babel-evaluate nil)
 (setq org-src-fontify-natively t) ;; syntax highlighting in org
-(setq org-src-tab-acts-natively t) ;; syntax highlighting in org
+(setq org-src-tab-acts-natively nil) ;; syntax highlighting in org
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((C . t)
