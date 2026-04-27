@@ -130,6 +130,7 @@
 
 ;; ----- vertico -------
 (use-package vertico :init (vertico-mode))
+(setq vertico-count 30)
 ;; This next stuff is more for lsp
 (setq xref-show-xrefs-function #'xref-show-definitions-completing-read
       xref-show-definitions-function #'xref-show-definitions-completing-read)
@@ -336,8 +337,8 @@
 ;; ------ c++ configs --------
 (add-hook 'c++-mode-hook 'lsp)
 ;; (add-hook 'c-mode-hook 'lsp)
-;; (setq lsp-clients-clangd-executable "/usr/bin/clangd")
-;; (setq lsp-clangd-binary-path "/usr/bin/clangd")
+(setq lsp-clients-clangd-executable "/usr/bin/clangd")
+(setq lsp-clangd-binary-path "/usr/bin/clangd")
 
 (add-to-list 'auto-mode-alist '("\\.ipp\\'" . c++-mode)) ;; add ipp files to cpp mode
 
@@ -474,7 +475,9 @@
 (add-to-list
  'display-buffer-alist
  '("\\*compilation\\*"
-   (display-buffer-at-bottom)
+   (display-buffer-in-side-window)
+   (side . bottom)
+   (slot . 0)
    (window-height . 0.3)))
 
 (setq compilation-scroll-output t)
