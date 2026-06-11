@@ -374,9 +374,7 @@
   :config
   (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
   )
-;; (use-package repeat
-;;   :custom
-;;   (repeat-mode +1))
+
 (use-package emacs
   :custom
   (window-sides-vertical t))
@@ -563,35 +561,3 @@
 
 ;; ------ epub reader -------
 (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
-
-
-;;; --------------------- NEW stuff from elbeno
-;; Keep whitespace clean
-;; (setq require-final-newline t)
-;; (use-package ws-butler
-;;   :ensure t
-;;   :config
-;;   (ws-butler-global-mode)
-;;   :diminish
-;;   ws-butler-mode)
-
-;; Smooth scrolling
-(setq scroll-margin 1
-      scroll-step 1
-      scroll-conservatively 10000
-      scroll-preserve-screen-position 1)
-(setq mouse-wheel-follow-mouse t
-      mouse-wheel-scroll-amount '(1 ((shift) . 1)))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(ws-butler fireplace async magit projectile treemacs treemacs-projectile treemacs-tab-bar lsp-mode lsp-ui lsp-treemacs hydra flycheck company avy which-key yasnippet clang-format clang-format+ tramp xclip ox-clip org cmake-mode dockerfile-mode json-mode flymake-json diff-hl rmsbolt gnuplot gnuplot-mode nov pyvenv dap-mode modus-themes yasnippet-snippets yaml-mode envrc ibuffer-projectile dape python-pytest lsp-pyright ruff-format vertico consult marginalia embark embark-consult super-save)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
