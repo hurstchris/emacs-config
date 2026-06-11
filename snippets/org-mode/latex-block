@@ -1,7 +1,0 @@
-# -*- mode: snippet -*-
-# name: latex-block
-# key: <latex
-# --
-#+BEGIN_LaTeX latex
-
-#+END_LaTex

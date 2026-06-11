@@ -87,7 +87,10 @@
 (tool-bar-mode -1) ;; tool bar
 (menu-bar-mode -1) ;; No menu bar
 (scroll-bar-mode -1) ;; No scroll bar
-(setq inhibit-startup-screen t) ;; No Startup screen
+(setq inhibit-startup-screen t
+      initial-scratch-message ""
+      visible-bell 1
+      x-stretch-cursor t)
 ;; (set-face-attribute 'default nil :height 95) ;; Set default font sz
 (setq split-height-threshold nil)
 
@@ -118,14 +121,14 @@
 (use-package super-save
   :ensure t
   :config
-  (setq super-save-triggers
-        '(consult-buffer
-          switch-to-buffer
-          other-window
-          windmove-left
-          windmove-down
-          windmove-up
-          windmove-right))
+  (setq super-save-auto-save-when-idle t)
+  (setq super-save-idle-duration 5)
+  (setq super-save-triggers nil)
+  (setq super-save-triggers '(switch-to-buffer))
+  (setq super-save-when-buffer-switched t)
+  (setq super-save-silent t)
+  ;; (setq super-save-delete-trailing-whitespace t)
+  ;; (setq super-save-delete-trailing-whitespace 'except-current-line)
   (super-save-mode +1))
 
 ;; ----- vertico -------
@@ -248,7 +251,6 @@
 ;; ----- embark -----
 (use-package embark
   :ensure t
-
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("C-;" . embark-dwim)        ;; good alternative: M-.
@@ -324,8 +326,6 @@
       lsp-idle-delay 0.5
       lsp-auto-guess-root t)
 
-
-
 (with-eval-after-load 'lsp-mode
   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration)
   (require 'dap-gdb)
@@ -383,10 +383,12 @@
 
 ;; ------ rmsbolt -----
 (defun my/rmsbolt-after (&rest _args)
+  (sleep-for 0.1)
   (compile (concat rmsbolt-command " rmsbolt.cpp -o a.out && ./a.out")))
 (advice-add 'rmsbolt-compile :after #'my/rmsbolt-after)
 (add-to-list 'safe-local-variable-values
              '(rmsbolt-disassemble . "objdump -d -M intel"))
+(setq rmsbolt-compile-delay 3)
 
 ;; ------ clang format --------
 (require 'clang-format)
@@ -464,6 +466,12 @@
 (setq org-edit-src-auto-save-idle-delay 0.5)
 (setq org-edit-src-turn-on-auto-save t)
 
+;; blog publishing
+(defun publish-all ()
+  "Publish entire blog to html"
+  (interactive)
+  (load "~/blog/publish.el"))
+
 (defalias 'clangformatbabelblock
    (kmacro "C-c ' M-x c l a n g - f o r m a t - b u f f e r <return> C-c '"))
 (global-set-key (kbd "C-c f") 'clangformatbabelblock)
@@ -504,6 +512,47 @@
    (slot . 0)
    (window-width . 0.3)))
 
+(setq compilation-always-kill t)
+
+(defun my/close-compilation-buffer ()
+  (interactive)
+  (let ((buf (get-buffer "*compilation*")))
+    (when buf
+      (delete-windows-on buf)
+      (kill-buffer buf))))
+
+(defun my/close-compilation-window-on-success (buf str)
+  "Close compilation window after successful non-RMSBolt compilations."
+
+  (with-current-buffer buf
+    (unless (or (string-match-p "exited abnormally" str)
+                (derived-mode-p 'grep-mode)
+                (save-excursion
+                  (goto-char (point-min))
+                  (search-forward "/tmp/rmsbolt-" nil t)))
+
+      (run-at-time
+       "1 sec" nil
+       (lambda (buffer)
+         (when (buffer-live-p buffer)
+           (delete-windows-on buffer)))
+       buf)
+
+      (message "No compilation errors!"))))
+
+(add-hook 'compilation-finish-functions
+          #'my/close-compilation-window-on-success)
+
+(defun my/close-grep-buffer ()
+  (interactive)
+  (let ((buf (get-buffer "*grep*")))
+    (when buf
+      (delete-windows-on buf)
+      (kill-buffer buf))))
+
+(global-set-key (kbd "C-<f8>") #'my/close-compilation-buffer)
+(global-set-key (kbd "C-<f10>") #'my/close-grep-buffer)
+
 ;; ------ GDB ------
 (setq gdb-many-windows 't)
 (setq gdb-default-window-configuration-file "~/.emacs.d/.default-gdb-layout.config")
@@ -514,3 +563,35 @@
 
 ;; ------ epub reader -------
 (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+
+
+;;; --------------------- NEW stuff from elbeno
+;; Keep whitespace clean
+;; (setq require-final-newline t)
+;; (use-package ws-butler
+;;   :ensure t
+;;   :config
+;;   (ws-butler-global-mode)
+;;   :diminish
+;;   ws-butler-mode)
+
+;; Smooth scrolling
+(setq scroll-margin 1
+      scroll-step 1
+      scroll-conservatively 10000
+      scroll-preserve-screen-position 1)
+(setq mouse-wheel-follow-mouse t
+      mouse-wheel-scroll-amount '(1 ((shift) . 1)))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(ws-butler fireplace async magit projectile treemacs treemacs-projectile treemacs-tab-bar lsp-mode lsp-ui lsp-treemacs hydra flycheck company avy which-key yasnippet clang-format clang-format+ tramp xclip ox-clip org cmake-mode dockerfile-mode json-mode flymake-json diff-hl rmsbolt gnuplot gnuplot-mode nov pyvenv dap-mode modus-themes yasnippet-snippets yaml-mode envrc ibuffer-projectile dape python-pytest lsp-pyright ruff-format vertico consult marginalia embark embark-consult super-save)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

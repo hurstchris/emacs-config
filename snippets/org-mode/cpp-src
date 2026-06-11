@@ -1,14 +1,9 @@
-# key: <cpp
-# name: cpp-src
-# expand-env: ((yas-indent-line 'fixed))
+# -*- mode: snippet -*-
+# name: latex_src
+# key: <latex
 # --
-#+begin_src C++ :flags -std=c++23
-  #include <iostream>
-  #include <vector>
+#+begin_latex latex
+\begin{equation}
 
-  int main()
-  {
-    std::cout << "hello world\n";
-  }
-  
-#+end_src
+\end{equation}
+#+end_latex
