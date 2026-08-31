@@ -5,11 +5,15 @@
       '(("gnu" . "https://elpa.gnu.org/packages/")
         ("melpa" . "https://melpa.org/packages/")))
 
+(setq package-install-upgrade-built-in t)
 (package-initialize)
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+
+;; Force to get the newest version of org
+(package-install 'org)
 
 (require 'use-package)
 
@@ -71,16 +75,38 @@
 (global-auto-revert-mode 1) ;; Global auto revert
 (setq auto-revert-remote-files t) ;; Revert remote files as well
 (setq ring-bell-function 'ignore) ;; Stop the bell
-(add-hook 'prog-mode-hook 'display-line-numbers-mode) ;; set line #'s only for prog mode
+(add-hook 'prog-mode-hook 'display-line-numbers-mode) ;; set line #'s only for prog mod
 (put 'erase-buffer 'disabled nil) ;; Don't ask warning for clear buffer (cause i dont use it enough)
 (setq-default enable-remote-dir-locals t)
 (setq completion-auto-help 'always)
+(add-hook 'c++-mode-hook 'electric-pair-mode) ;; auto closing parens
+(add-hook 'python-mode-hook 'electric-pair-mode) 
 
 ;; ------- diff-hl -------
 (use-package diff-hl
   :ensure t
   :config
   (global-diff-hl-mode 1))
+
+;;------------------------------------------------------------------------------
+;; Avy
+(use-package avy
+  :ensure t
+  :bind (("C-c SPC" . avy-goto-word-or-subword-1)
+         ("C-," . avy-pop-mark)
+         ("C-j" . avy-goto-char-timer)))
+
+;;------------------------------------------------------------------------------
+;; visual-regexp-steroids: better regexp searching
+(use-package visual-regexp-steroids
+  :ensure t
+  :bind (("C-c r" . vr/replace)
+         ("C-c q" . vr/query-replace)
+         ("C-r" . vr/isearch-backward)
+         ("C-s" . vr/isearch-forward)))
+
+;; use case-insensitive searching in general
+(setq case-fold-search t)
 
 ;; ------- which-key mode --------
 (use-package which-key
@@ -89,17 +115,17 @@
   (which-key-mode 1))
  
 ;; ----- super-save -----
+;; Basically onlty use this when you compile
+;; lsp has some weird window changing behavior that
+;; triggers this
 (use-package super-save
   :ensure t
   :config
-  (setq super-save-auto-save-when-idle t)
-  (setq super-save-idle-duration 5)
   (setq super-save-triggers nil)
-  (setq super-save-triggers '(switch-to-buffer))
-  (setq super-save-when-buffer-switched t)
-  (setq super-save-silent t)
-  ;; (setq super-save-delete-trailing-whitespace t)
-  ;; (setq super-save-delete-trailing-whitespace 'except-current-line)
+  (setq super-save-when-buffer-switched nil)
+  (setq super-save-silent nil)
+  (add-to-list 'super-save-hook-triggers 'compile)
+  (add-to-list 'super-save-hook-triggers 'projectile-compile-project)
   (super-save-mode +1))
 
 ;; ----- vertico -------
@@ -308,14 +334,16 @@
   :hook ((c++-mode . lsp)
          (python-mode . lsp-deferred))
   :custom
-  (lsp-idle-delay 0.5)
+  (lsp-idle-delay 0.1)
   (lsp-auto-guess-root t)
-  (setq company-idle-delay 0.5)
+  (setq company-idle-delay 0.1)
   (setq company-minimum-prefix-length 1)
   :config
   (setq lsp-semantic-tokens-enable nil)
   (setq lsp-clients-clangd-executable "/usr/bin/clangd")
   (setq lsp-clangd-binary-path "/usr/bin/clangd")
+  (setq lsp-enable-indentation nil)
+  (setq lsp-enable-on-type-formatting nil)
   (add-hook 'lsp-mode-hook
             #'lsp-enable-which-key-integration))
 
@@ -325,13 +353,13 @@
 ;;   (require 'dap-python)
 ;;   (setq lsp-semantic-tokens-enable t))
 
-;; (setq lsp-format-buffer-on-save t)
+(setq lsp-format-buffer-on-save t)
 
 ;; ------ c++ configs --------
-
-
-
 (add-to-list 'auto-mode-alist '("\\.ipp\\'" . c++-mode)) ;; add ipp files to cpp mode
+
+;; clang-format files are YAML
+(add-to-list 'auto-mode-alist '("\\.clang-format\\'" . yaml-mode))
 
 ;; ------ dap mode ------
 ;; To get windows to work properly, when you open dap-debug
@@ -348,31 +376,6 @@
   (require 'dap-python))
 
 ;; ------ dape ------
-;; (set-fringe-mode 12)
-
-;; (require 'transient)
-
-;; (transient-define-prefix my/dape-transient ()
-;;   "Dape transient."
-;;   [["Breakpoints"
-;;     ("b" "Toggle breakpoint" dape-breakpoint-toggle)]])
-
-;; (defun my/dape-keys ()
-;;   (local-set-key (kbd "C-c d") #'my/dape-transient))
-
-
-;; (use-package dape
-;;   :hook
-;;   ((dape-mode . my/dape-keys)
-;;    (dape-repl-mode . my/dape-keys))
-;;   :custom
-;;   (dape-breakpoint-global-mode +1)
-;;   (dape-info-hide-mode-line nil)
-;;   (dape-cwd-function #'projectile-project-root)
-;;   :config
-;;   (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
-;;   )
-
 (use-package transient
   :config
   (transient-define-prefix my/dape-transient ()
@@ -400,28 +403,49 @@
   (window-sides-vertical t))
 
 ;; ------ rmsbolt -----
-(defun my/rmsbolt-after (&rest _args)
-  (sleep-for 0.1)
-  (compile (concat rmsbolt-command " rmsbolt.cpp -o a.out && ./a.out")))
-(advice-add 'rmsbolt-compile :after #'my/rmsbolt-after)
-(add-to-list 'safe-local-variable-values
-             '(rmsbolt-disassemble . "objdump -d -M intel"))
-(setq rmsbolt-compile-delay 3)
-
-;; ------ clang format --------
-(use-package clang-format
+(use-package rmsbolt
   :ensure t
   :config
-  ;; (setq-default clang-format-on-save-mode t)
-  ;; (setq-default clang-format-fallback-style "llvm") ;; sets fallback clang-format
-  (setq-default clang-format-style "file:/home/chris/.emacs.d/cpp-tools/.clang-format"))
+  (setq rmsbolt-compile-delay 10)
+  (setq rmsbolt-automatic-recompile nil))
 
-(use-package clang-format+
-  :ensure t
-  :hook ((c-mode . clang-format+-mode)
-         (c++-mode . clang-format+-mode)))
+;; Note this will only make rmsbolt work for cpp
+(defun my/rmsbolt-after-cpp (&rest _args)
+  (when (string-match-p "\\.cpp\\'" (buffer-name (current-buffer)))
+    (sleep-for 0.1)
+    (compile (concat rmsbolt-command
+                     " rmsbolt.cpp -o a.out && ./a.out"))))
+(advice-add 'rmsbolt-compile :after #'my/rmsbolt-after-cpp)
+;; This is for python
+(defun my/rmsbolt-after-python (&rest _args)
+  (when (string-match-p "\\.py\\'" (buffer-name (current-buffer)))
+    (sleep-for 0.1)
+    (compile (concat rmsbolt-command
+                     " rmsbolt.py"))))
+(advice-add 'rmsbolt-compile :after #'my/rmsbolt-after-python)
+(add-to-list 'safe-local-variable-values
+             '(rmsbolt-disassemble . "objdump -d -M intel"))
 
-(setq lsp-clients-clangd-args '("--header-insertion=never" "--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy")) ;; set some clang args
+(advice-add 'rmsbolt-compile
+            :before
+            (lambda (&rest _)
+              (save-buffer)))
+
+;; ------ clang format --------
+;; trying lsp for now
+;; (use-package clang-format
+;;   :ensure t
+;;   :config
+;;   ;; (setq-default clang-format-on-save-mode t)
+;;   ;; (setq-default clang-format-fallback-style "llvm") ;; sets fallback clang-format
+;;   (setq-default clang-format-style "file:/home/chris/.emacs.d/cpp-tools/.clang-format"))
+
+;; (use-package clang-format+
+;;   :ensure t
+;;   :hook ((c-mode . clang-format+-mode)
+;;          (c++-mode . clang-format+-mode)))
+
+(setq lsp-clients-clangd-args '("--header-insertion=never" "--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy" "--fallback-style=Google")) ;; set some clang args
 
 ;; ------ python lsp ------
 ;; For a new system, run
@@ -432,20 +456,17 @@
 
 (use-package lsp-pyright
   :ensure t
-  :custom (lsp-pyright-langserver-command "pyright") ;; or basedpyright
-  :hook (python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp-deferred))))  ; or lsp-deferred
+  :custom (lsp-pyright-langserver-command "pyright"))
 
 (use-package ruff-format
   :ensure t
   :hook (python-mode . ruff-format-on-save-mode))
 
 ;; ------ emacs pet --------
-;; this is way too slow, use direnv or something
-;; (use-package pet
-;;   :config
-;;   (add-hook 'python-base-mode-hook 'pet-mode -10))
+;; this might be slow
+(use-package pet
+  :config
+  (add-hook 'python-base-mode-hook 'pet-mode -10))
 
 ;; ------ tramp --------
 (use-package tramp
@@ -453,14 +474,18 @@
   (tramp-cleanup-all-connections))
 
 ;; ------ org mode --------
+(use-package org
+  :ensure t
+  :pin gnu)
+
 (setq org-default-notes-file "~/org/notes.org")
 (global-set-key (kbd "C-c c") #'org-capture)
 (setq org-capture-templates
       '(("l" "Log" entry (file+datetree "~/org/notes.org")
          "* %? \n %a")
-      ("r" "Random Notes" entry (file+datetree "/home/chris/org/test-blog/org/daily-notes/daily-notes.org")
+      ("r" "Random Notes" entry (file+datetree "/home/chris/blog/org/daily-notes/daily-notes.org")
        "* %?")
-      ("c" "C++ Notes" entry (file "/home/chris/org/test-blog/org/cpp-notes/cpp-notes.org")
+      ("c" "C++ Notes" entry (file "/home/chris/blog/org/cpp-notes/cpp-notes.org")
          "* %?")))
 (add-hook 'org-mode-hook 'org-indent-mode) ;; Make the indentation look nicer
 (setq org-log-done 'time) ;; When a TODO is set to a done state, record a timestamp
@@ -478,6 +503,12 @@
    (latex . t)
    (gnuplot . t)))
 ;; add additional languages with (language . t)))
+
+;; When in an org file, use the scratch venv
+(setq org-babel-python-command "~/.venv/bin/python")
+
+;; Spell checking in org mode
+(add-hook 'org-mode-hook 'flyspell-mode)
 
 ;; Org structure templates: C-c C-,
 (add-to-list 'org-structure-template-alist
@@ -498,6 +529,15 @@
 (defalias 'clangformatbabelblock
    (kmacro "C-c ' M-x c l a n g - f o r m a t - b u f f e r <return> C-c '"))
 (global-set-key (kbd "C-c f") 'clangformatbabelblock)
+
+;; This lets src block publishing to look like your emacs
+(use-package engrave-faces
+  :ensure t
+  :after org
+  :config
+  (setq org-latex-src-block-backend 'engraved)
+  )
+
 
 ;; ------ compilation buffer --------
 (defun my-compilation-mode-font-setup ()
@@ -546,7 +586,6 @@
 
 (defun my/close-compilation-window-on-success (buf str)
   "Close compilation window after successful non-RMSBolt compilations."
-
   (with-current-buffer buf
     (unless (or (string-match-p "exited abnormally" str)
                 (derived-mode-p 'grep-mode)
