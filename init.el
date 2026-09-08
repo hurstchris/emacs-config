@@ -79,7 +79,7 @@
 (put 'erase-buffer 'disabled nil) ;; Don't ask warning for clear buffer (cause i dont use it enough)
 (setq-default enable-remote-dir-locals t)
 (setq completion-auto-help 'always)
-(add-hook 'c++-mode-hook 'electric-pair-mode) ;; auto closing parens
+(add-hook 'c++-mode-hook 'electric-pair-mode) ;; auto closing parens for c++ and python
 (add-hook 'python-mode-hook 'electric-pair-mode) 
 
 ;; ------- diff-hl -------
@@ -148,7 +148,7 @@
          ("C-c M-x" . consult-mode-command)
          ("C-c h" . consult-history)
          ("C-c k" . consult-kmacro)
-         ("C-c m" . consult-man)
+         ;; ("C-c m" . consult-man)
          ("C-c i" . consult-info)
          ([remap Info-search] . consult-info)
          ;; C-x bindings in `ctl-x-map'
@@ -287,6 +287,14 @@
 (use-package embark-consult
   :ensure t) ; only need to install it, embark loads it after consult if found
 
+(use-package imenu-list
+  :ensure t
+  :bind (("C-'" . imenu-list-smart-toggle))
+  :config
+  (setq imenu-list-focus-after-activation t
+        imenu-list-auto-resize nil))
+
+
 ;; ----- direnv setup ------
 (use-package envrc
   :hook (after-init . envrc-global-mode))
@@ -353,6 +361,7 @@
 ;;   (require 'dap-python)
 ;;   (setq lsp-semantic-tokens-enable t))
 
+;; Idk why this is outside the config
 (setq lsp-format-buffer-on-save t)
 
 ;; ------ c++ configs --------
@@ -476,6 +485,8 @@
 ;; ------ org mode --------
 (use-package org
   :ensure t
+  :config
+  (with-eval-after-load 'org (keymap-unset org-mode-map "C-'")) ;; this is to get my imenu-list
   :pin gnu)
 
 (setq org-default-notes-file "~/org/notes.org")
