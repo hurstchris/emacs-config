@@ -80,7 +80,7 @@
 (setq-default enable-remote-dir-locals t)
 (setq completion-auto-help 'always)
 (add-hook 'c++-mode-hook 'electric-pair-mode) ;; auto closing parens for c++ and python
-(add-hook 'python-mode-hook 'electric-pair-mode) 
+;; (add-hook 'python-mode-hook 'electric-pair-mode) ;; dont do it for pyton for now
 
 ;; ------- diff-hl -------
 (use-package diff-hl
@@ -454,7 +454,7 @@
 ;;   :hook ((c-mode . clang-format+-mode)
 ;;          (c++-mode . clang-format+-mode)))
 
-(setq lsp-clients-clangd-args '("--header-insertion=never" "--header-insertion-decorators=0" "-j=4" "-background-index" "--clang-tidy" "--fallback-style=Google")) ;; set some clang args
+(setq lsp-clients-clangd-args '("--header-insertion=iwyu" "--header-insertion-decorators" "-j=4" "--background-index" "--clang-tidy" "--fallback-style=GNU")) ;; set some clang args
 
 ;; ------ python lsp ------
 ;; For a new system, run
