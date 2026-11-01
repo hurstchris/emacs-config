@@ -630,6 +630,7 @@
 (setq gdb-many-windows 't)
 (setq gdb-default-window-configuration-file "~/.emacs.d/.default-gdb-layout.config")
 (setq gdb-debuginfod-enable-setting 't)
+(add-hook 'gud-mode-hook #'gud-tooltip-mode) ;; can see variables values when hovering
 
 ;; ------ JSON ------
 (use-package json-mode
